@@ -23,7 +23,8 @@ bool Graphics::OpenWindow() {
     SDL_GetCurrentDisplayMode(0, &display_mode);
     windowWidth = 800;
     windowHeight = 600;
-    window = SDL_CreateWindow("2D Physics", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
+    //window = SDL_CreateWindow(NULL, 0, 0, windowWidth, windowHeight, SDL_WINDOW_BORDERLESS);
+    window = SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth, windowHeight, SDL_WINDOW_SHOWN);
     if (!window) {
         std::cerr << "Error creating SDL window" << std::endl;
         return false;
