@@ -3,6 +3,7 @@
 
 #pragma once
 #include "Vec2.h"
+#include "SDL_stdinc.h"
 
 struct Particle {
     Particle() = default;
@@ -16,6 +17,8 @@ struct Particle {
     float mass{};
     float inverseMass{};
     int radius{};
+
+    Uint32 color = 0xFFFFFFFF;
 
 public:
     void AddForce(const Vec2& force);

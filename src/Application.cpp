@@ -3,8 +3,6 @@
 #include "./Physics/Constants.h"
 #include "./Physics/Force.h"
 
-#include <cstdlib>
-
 bool Application::IsRunning() {
     return running;
 }
@@ -15,13 +13,15 @@ bool Application::IsRunning() {
 void Application::Setup() {
     running = Graphics::OpenWindow();
 
-    auto particle = new Particle(200, 100, 5.0f);
-    particle->radius = 25;
-    particles.push_back(particle);
+    Particle* smallPlanet = new Particle(200, 200, 1.0);
+    smallPlanet->radius = 6;
+    smallPlanet->color = 0xFFAA3300;
+    particles.push_back(smallPlanet);
 
-    particle = new Particle(50, 100, 1.0f);
-    particle->radius = 5;
-    particles.push_back(particle);
+    Particle* bigPlanet = new Particle(500, 500, 20.0);
+    bigPlanet->radius = 20;
+    bigPlanet->color = 0xFF00FFFF;
+    particles.push_back(bigPlanet);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -105,7 +105,7 @@ void Application::Update() {
 
     // Calculate the deltatime in seconds
     float deltaTime = (SDL_GetTicks() - timePreviousFrame) / 1000.0f;
-    if (deltaTime > MILLISECS_PER_FRAME) deltaTime = MILLISECS_PER_FRAME;
+    if (deltaTime > 0.016) deltaTime = 0.016;
 
     // Set the time of the current frame to be used in the next one
     timePreviousFrame = SDL_GetTicks();
@@ -117,9 +117,14 @@ void Application::Update() {
         particle->AddForce(pushForce);
 
         // Calculate friction
-        Vec2 friction = Force::GenerateFrictionForce(*particle, 15 * PIXELS_PER_METER);
+        Vec2 friction = Force::GenerateFrictionForce(*particle, 20);
         particle->AddForce(friction);
     }
+
+    // Applying a gravitational force to our two particles/planets
+    Vec2 attraction = Force::GenerateGravitationalForce(*particles[0], *particles[1], 1000.0, 5, 100);
+    particles[0]->AddForce(attraction);
+    particles[1]->AddForce(-attraction);
 
     // Update the particles integration
     for (const auto &particle: particles) {
@@ -158,14 +163,14 @@ void Application::Update() {
 // Render function (called several times per second to draw objects)
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Render() {
-    Graphics::ClearScreen(0xFF1E4002);
+    Graphics::ClearScreen(0xFF0F0721);
 
     if (selectedParticle) {
         Graphics::DrawLine(selectedParticle->position.x, selectedParticle->position.y, mouseCursor.x, mouseCursor.y, 0xFF0000FF);
     }
 
     for (const auto &particle: particles) {
-        Graphics::DrawFillCircle(particle->position.x, particle->position.y, particle->radius, 0xFFFFFFFF);
+        Graphics::DrawFillCircle(particle->position.x, particle->position.y, particle->radius, particle->color);
     }
     Graphics::RenderFrame();
 }
