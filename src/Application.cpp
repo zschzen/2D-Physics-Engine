@@ -13,15 +13,15 @@ bool Application::IsRunning() {
 void Application::Setup() {
     running = Graphics::OpenWindow();
 
-    Particle* smallPlanet = new Particle(200, 200, 1.0);
-    smallPlanet->radius = 6;
-    smallPlanet->color = 0xFFAA3300;
-    particles.push_back(smallPlanet);
+    anchor = Vec2(Graphics::Width() / 2.0, 30);
 
-    Particle* bigPlanet = new Particle(500, 500, 20.0);
-    bigPlanet->radius = 20;
-    bigPlanet->color = 0xFF00FFFF;
-    particles.push_back(bigPlanet);
+    // Create particles in a chain
+    for (int i = 0; i < PARTICLE_COUNT; i++) {
+        Particle* particle = new Particle(anchor.x, anchor.y + (i * restLength), 2.0);
+        particle->radius = 5;
+        particle->color = 0xFF000000 | (rand() % 0xFFFFFF);
+        particles.push_back(particle);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -65,12 +65,8 @@ void Application::Input() {
                     int x, y;
                     SDL_GetMouseState(&x, &y);
 
-                    // Determine if the mouse cursor is over a particle
-                    for (auto particle : particles) {
-                        if ((particle->position - Vec2(x, y)).Magnitude() >= particle->radius) continue;
-                        selectedParticle = particle;
-                        break;
-                    }
+                    // Get nearest particle to the mouse cursor
+                    selectedParticle = FindClosestParticle(Vec2(x, y));
 
                     mouseCursor.x = x;
                     mouseCursor.y = y;
@@ -80,6 +76,7 @@ void Application::Input() {
                 if (selectedParticle && event.button.button == SDL_BUTTON_LEFT) {
                     Vec2 impulseDirection = (selectedParticle->position - mouseCursor).UnitVector();
                     float impulseMagnitude = (selectedParticle->position - mouseCursor).Magnitude() * 5.0;
+
                     selectedParticle->velocity = impulseDirection * impulseMagnitude;
                     selectedParticle = nullptr;
                 }
@@ -116,15 +113,25 @@ void Application::Update() {
         //particle->AddForce(Vec2(0.0f, particle->mass * GRAVITY) * PIXELS_PER_METER);
         particle->AddForce(pushForce);
 
-        // Calculate friction
-        Vec2 friction = Force::GenerateFrictionForce(*particle, 20);
-        particle->AddForce(friction);
+        // Calculate drag force
+        Vec2 drag = Force::GenerateDragForce(*particle, 0.001);
+        particle->AddForce(drag);
+        
+        // Weight force
+        Vec2 weight = Vec2(0.0f, particle->mass * GRAVITY * PIXELS_PER_METER);
+        particle->AddForce(weight);
     }
 
-    // Applying a gravitational force to our two particles/planets
-    Vec2 attraction = Force::GenerateGravitationalForce(*particles[0], *particles[1], 1000.0, 5, 100);
-    particles[0]->AddForce(attraction);
-    particles[1]->AddForce(-attraction);
+    // Apply a spring force to the particle connected to the anchor
+    Vec2 springForce = Force::GenerateSpringForce(*particles[0], anchor, restLength, k);
+    particles[0]->AddForce(springForce);
+    
+    // Apply a spring force to the particles connected to each other
+    for (int i = 1; i < PARTICLE_COUNT; i++) {
+        Vec2 springForce = Force::GenerateSpringForce(*particles[i], *particles[i - 1], restLength, k);
+        particles[i]->AddForce(springForce);
+        particles[i - 1]->AddForce(-springForce);
+    }
 
     // Update the particles integration
     for (const auto &particle: particles) {
@@ -169,6 +176,15 @@ void Application::Render() {
         Graphics::DrawLine(selectedParticle->position.x, selectedParticle->position.y, mouseCursor.x, mouseCursor.y, 0xFF0000FF);
     }
 
+    // Draw the spring
+    Graphics::DrawLine(particles[0]->position.x, particles[0]->position.y, anchor.x, anchor.y, 0xFF00FF00);
+    for (int i = 1; i < PARTICLE_COUNT; i++) {
+        Graphics::DrawLine(particles[i]->position.x, particles[i]->position.y, particles[i - 1]->position.x, particles[i - 1]->position.y, 0xFF00FF00);
+    }
+
+    // Draw the anchor
+    Graphics::DrawFillCircle(anchor.x, anchor.y, 5, 0xFF001155);
+    
     for (const auto &particle: particles) {
         Graphics::DrawFillCircle(particle->position.x, particle->position.y, particle->radius, particle->color);
     }
@@ -184,4 +200,20 @@ void Application::Destroy() {
     }
 
     Graphics::CloseWindow();
+}
+
+Particle *Application::FindClosestParticle(const Vec2 &position)
+{
+    Particle *closestParticle = nullptr;
+    float closestDistance = 0.0f;
+
+    for (const auto &particle: particles) {
+        float distance = (particle->position - position).Magnitude();
+        if (closestParticle && distance >= closestDistance) continue;
+
+        closestParticle = particle;
+        closestDistance = distance;
+    }
+
+    return closestParticle;
 }
