@@ -18,10 +18,10 @@ class Application {
         Vec2 mouseCursor = Vec2(0, 0);
         Particle* selectedParticle = nullptr;
 
-        float k = 1500;
-        float restLength = 200;
+        float k = 500;
+        float restLength = 100;
         const int SPRING_ROWS = 5;
-        const int SPRING_COLS = 2;
+        const int SPRING_COLS = 5;
 
     public:
         Application() = default;

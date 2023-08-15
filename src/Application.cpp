@@ -105,9 +105,9 @@ void Application::Update() {
         particle->AddForce(pushForce);
 
         // Calculate drag force
-        Vec2 drag = Force::GenerateDragForce(*particle, 0.001);
+        Vec2 drag = Force::GenerateDragForce(*particle, 0.003);
         particle->AddForce(drag);
-        
+
         // Weight force
         Vec2 weight = Vec2(0.0f, particle->mass * GRAVITY * PIXELS_PER_METER);
         particle->AddForce(weight);
@@ -153,29 +153,21 @@ void Application::Render() {
         Graphics::DrawLine(selectedParticle->position.x, selectedParticle->position.y, mouseCursor.x, mouseCursor.y, 0xFF0000FF);
     }
 
-    // Draw all springs lines
-    // 0 0 connects to 0 1, 1 0, 1 1
+    // Draw all springs
     for (int i = 0; i < SPRING_ROWS; i++) {
         for (int j = 0; j < SPRING_COLS; j++) {
             int index = i * SPRING_COLS + j;
-            
             if (j < SPRING_COLS - 1) {
-                Graphics::DrawLine(particles[index]->position.x, particles[index]->position.y,
-                                   particles[index + 1]->position.x, particles[index + 1]->position.y, 0xFF0000FF);
+                Graphics::DrawLine(particles[index]->position.x, particles[index]->position.y, particles[index + 1]->position.x, particles[index + 1]->position.y, 0xFF313131);
             }
             if (i < SPRING_ROWS - 1) {
-                Graphics::DrawLine(particles[index]->position.x, particles[index]->position.y,
-                                   particles[index + SPRING_COLS]->position.x, particles[index + SPRING_COLS]->position.y, 0xFF0000FF);
+                Graphics::DrawLine(particles[index]->position.x, particles[index]->position.y, particles[index + SPRING_COLS]->position.x, particles[index + SPRING_COLS]->position.y, 0xFF313131);
             }
-            
             if (i < SPRING_ROWS - 1 && j < SPRING_COLS - 1) {
-                Graphics::DrawLine(particles[index]->position.x, particles[index]->position.y,
-                                   particles[index + SPRING_COLS + 1]->position.x, particles[index + SPRING_COLS + 1]->position.y, 0xFF0000FF);
+                Graphics::DrawLine(particles[index]->position.x, particles[index]->position.y, particles[index + SPRING_COLS + 1]->position.x, particles[index + SPRING_COLS + 1]->position.y, 0xFF313131);
             }
-            
             if (i < SPRING_ROWS - 1 && j > 0) {
-                Graphics::DrawLine(particles[index]->position.x, particles[index]->position.y,
-                                   particles[index + SPRING_COLS - 1]->position.x, particles[index + SPRING_COLS - 1]->position.y, 0xFF0000FF);
+                Graphics::DrawLine(particles[index]->position.x, particles[index]->position.y, particles[index + SPRING_COLS - 1]->position.x, particles[index + SPRING_COLS - 1]->position.y, 0xFF313131);
             }
         }
     }
@@ -216,9 +208,9 @@ Particle *Application::FindClosestParticle(const Vec2 &position)
 void Application::CreateGridSoftBody(float x, float y, float mass) {
     for (int i = 0; i < SPRING_ROWS; i++) {
         for (int j = 0; j < SPRING_COLS; j++) {
-            Particle *particle = new Particle(x + (i * 200), y + (j * 200), mass);
-            particle->radius = 5.0f;
-            //particle->color = 0xFF000000 + (0x00FFFFFF / SPRING_ROWS) * i;
+            Particle *particle = new Particle(x + i * restLength, y + j * restLength, mass);
+            particle->radius = 6.0f;
+            //particle->color = 0xFFFF0000 + (0x0000FFFF / SPRING_ROWS) * i;
             particles.push_back(particle);
         }
     }
@@ -230,34 +222,24 @@ void Application::ApplySpringForces() {
         for (int j = 0; j < SPRING_COLS; j++) {
             int index = i * SPRING_COLS + j;
             if (j < SPRING_COLS - 1) {
-                Particle *particle1 = particles[index];
-                Particle *particle2 = particles[index + 1];
-                Vec2 force = Force::GenerateSpringForce(*particle1, *particle2, restLength, k);
-                particle1->AddForce(force);
-                particle2->AddForce(-force);
+                Vec2 right = Force::GenerateSpringForce(*particles[index], *particles[index + 1], restLength, k);
+                particles[index]->AddForce(right);
+                particles[index + 1]->AddForce(-right);
             }
             if (i < SPRING_ROWS - 1) {
-                Particle *particle1 = particles[index];
-                Particle *particle2 = particles[index + SPRING_COLS];
-                Vec2 force = Force::GenerateSpringForce(*particle1, *particle2, restLength, k);
-                particle1->AddForce(force);
-                particle2->AddForce(-force);
+                Vec2 down = Force::GenerateSpringForce(*particles[index], *particles[index + SPRING_COLS], restLength, k);
+                particles[index]->AddForce(down);
+                particles[index + SPRING_COLS]->AddForce(-down);
             }
             if (i < SPRING_ROWS - 1 && j < SPRING_COLS - 1) {
-                Particle *particle1 = particles[index];
-                Particle *particle2 = particles[index + SPRING_COLS + 1];
-                float diagonalRestLength = sqrt(restLength * restLength + restLength * restLength);
-                Vec2 force = Force::GenerateSpringForce(*particle1, *particle2, diagonalRestLength, k);
-                particle1->AddForce(force);
-                particle2->AddForce(-force);
+                Vec2 downRight = Force::GenerateSpringForce(*particles[index], *particles[index + SPRING_COLS + 1], restLength * SQRT_2, k);
+                particles[index]->AddForce(downRight);
+                particles[index + SPRING_COLS + 1]->AddForce(-downRight);
             }
             if (i < SPRING_ROWS - 1 && j > 0) {
-                Particle *particle1 = particles[index];
-                Particle *particle2 = particles[index + SPRING_COLS - 1];
-                float diagonalRestLength = sqrt(restLength * restLength + restLength * restLength);
-                Vec2 force = Force::GenerateSpringForce(*particle1, *particle2, diagonalRestLength, k);
-                particle1->AddForce(force);
-                particle2->AddForce(-force);
+                Vec2 downLeft = Force::GenerateSpringForce(*particles[index], *particles[index + SPRING_COLS - 1], restLength * SQRT_2, k);
+                particles[index]->AddForce(downLeft);
+                particles[index + SPRING_COLS - 1]->AddForce(-downLeft);
             }
         }
     }

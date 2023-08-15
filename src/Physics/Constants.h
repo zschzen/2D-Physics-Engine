@@ -10,4 +10,6 @@ constexpr float GRAVITY = 9.8f;
 
 constexpr float DEG_TO_RAD = 0.0174532925f;
 
+constexpr float SQRT_2 = 1.41421356237f;
+
 #endif
