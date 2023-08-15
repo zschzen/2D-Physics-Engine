@@ -18,11 +18,10 @@ class Application {
         Vec2 mouseCursor = Vec2(0, 0);
         Particle* selectedParticle = nullptr;
 
-        Vec2 anchor{};
-        float k = 300;
-        float restLength = 15;
-
-        const int PARTICLE_COUNT = 10;
+        float k = 1500;
+        float restLength = 200;
+        const int SPRING_ROWS = 5;
+        const int SPRING_COLS = 2;
 
     public:
         Application() = default;
@@ -36,6 +35,9 @@ class Application {
 
 private:
     Particle* FindClosestParticle(const Vec2& position);
+
+    void CreateGridSoftBody(float x, float y, float mass);
+    void ApplySpringForces();
 };
 
 #endif

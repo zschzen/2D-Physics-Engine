@@ -13,15 +13,8 @@ bool Application::IsRunning() {
 void Application::Setup() {
     running = Graphics::OpenWindow();
 
-    anchor = Vec2(Graphics::Width() / 2.0, 30);
-
-    // Create particles in a chain
-    for (int i = 0; i < PARTICLE_COUNT; i++) {
-        Particle* particle = new Particle(anchor.x, anchor.y + (i * restLength), 2.0);
-        particle->radius = 5;
-        particle->color = 0xFF000000 | (rand() % 0xFFFFFF);
-        particles.push_back(particle);
-    }
+    // Create soft body particles
+    CreateGridSoftBody(400, 300, 1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,7 +68,7 @@ void Application::Input() {
             case SDL_MOUSEBUTTONUP:
                 if (selectedParticle && event.button.button == SDL_BUTTON_LEFT) {
                     Vec2 impulseDirection = (selectedParticle->position - mouseCursor).UnitVector();
-                    float impulseMagnitude = (selectedParticle->position - mouseCursor).Magnitude() * 5.0;
+                    float impulseMagnitude = (selectedParticle->position - mouseCursor).Magnitude() * 15.0;
 
                     selectedParticle->velocity = impulseDirection * impulseMagnitude;
                     selectedParticle = nullptr;
@@ -109,8 +102,6 @@ void Application::Update() {
 
     // Add forces to the particles
     for (const auto &particle: particles) {
-        //particle->AddForce(Vec2(4.0f, 0.0f) * PIXELS_PER_METER);
-        //particle->AddForce(Vec2(0.0f, particle->mass * GRAVITY) * PIXELS_PER_METER);
         particle->AddForce(pushForce);
 
         // Calculate drag force
@@ -122,16 +113,8 @@ void Application::Update() {
         particle->AddForce(weight);
     }
 
-    // Apply a spring force to the particle connected to the anchor
-    Vec2 springForce = Force::GenerateSpringForce(*particles[0], anchor, restLength, k);
-    particles[0]->AddForce(springForce);
-    
-    // Apply a spring force to the particles connected to each other
-    for (int i = 1; i < PARTICLE_COUNT; i++) {
-        Vec2 springForce = Force::GenerateSpringForce(*particles[i], *particles[i - 1], restLength, k);
-        particles[i]->AddForce(springForce);
-        particles[i - 1]->AddForce(-springForce);
-    }
+    // Attach particles with springs
+    ApplySpringForces();
 
     // Update the particles integration
     for (const auto &particle: particles) {
@@ -144,10 +127,7 @@ void Application::Update() {
         if (particle->position.x - particle->radius < 0) {
             particle->position.x = particle->radius;
             particle->velocity.x *= -0.9;
-        }
-
-        // Right
-        if (particle->position.x + particle->radius > Graphics::windowWidth) {
+        } else if (particle->position.x + particle->radius > Graphics::windowWidth) {
             particle->position.x = Graphics::windowWidth - particle->radius;
             particle->velocity.x *= -0.9;
         }
@@ -156,10 +136,7 @@ void Application::Update() {
         if (particle->position.y - particle->radius < 0) {
             particle->position.y = particle->radius;
             particle->velocity.y *= -0.9;
-        }
-
-        // Bottom
-        if (particle->position.y + particle->radius > Graphics::windowHeight) {
+        } else if (particle->position.y + particle->radius > Graphics::windowHeight) {
             particle->position.y = Graphics::windowHeight - particle->radius;
             particle->velocity.y *= -0.9;
         }
@@ -176,15 +153,33 @@ void Application::Render() {
         Graphics::DrawLine(selectedParticle->position.x, selectedParticle->position.y, mouseCursor.x, mouseCursor.y, 0xFF0000FF);
     }
 
-    // Draw the spring
-    Graphics::DrawLine(particles[0]->position.x, particles[0]->position.y, anchor.x, anchor.y, 0xFF00FF00);
-    for (int i = 1; i < PARTICLE_COUNT; i++) {
-        Graphics::DrawLine(particles[i]->position.x, particles[i]->position.y, particles[i - 1]->position.x, particles[i - 1]->position.y, 0xFF00FF00);
+    // Draw all springs lines
+    // 0 0 connects to 0 1, 1 0, 1 1
+    for (int i = 0; i < SPRING_ROWS; i++) {
+        for (int j = 0; j < SPRING_COLS; j++) {
+            int index = i * SPRING_COLS + j;
+            
+            if (j < SPRING_COLS - 1) {
+                Graphics::DrawLine(particles[index]->position.x, particles[index]->position.y,
+                                   particles[index + 1]->position.x, particles[index + 1]->position.y, 0xFF0000FF);
+            }
+            if (i < SPRING_ROWS - 1) {
+                Graphics::DrawLine(particles[index]->position.x, particles[index]->position.y,
+                                   particles[index + SPRING_COLS]->position.x, particles[index + SPRING_COLS]->position.y, 0xFF0000FF);
+            }
+            
+            if (i < SPRING_ROWS - 1 && j < SPRING_COLS - 1) {
+                Graphics::DrawLine(particles[index]->position.x, particles[index]->position.y,
+                                   particles[index + SPRING_COLS + 1]->position.x, particles[index + SPRING_COLS + 1]->position.y, 0xFF0000FF);
+            }
+            
+            if (i < SPRING_ROWS - 1 && j > 0) {
+                Graphics::DrawLine(particles[index]->position.x, particles[index]->position.y,
+                                   particles[index + SPRING_COLS - 1]->position.x, particles[index + SPRING_COLS - 1]->position.y, 0xFF0000FF);
+            }
+        }
     }
 
-    // Draw the anchor
-    Graphics::DrawFillCircle(anchor.x, anchor.y, 5, 0xFF001155);
-    
     for (const auto &particle: particles) {
         Graphics::DrawFillCircle(particle->position.x, particle->position.y, particle->radius, particle->color);
     }
@@ -217,3 +212,54 @@ Particle *Application::FindClosestParticle(const Vec2 &position)
 
     return closestParticle;
 }
+
+void Application::CreateGridSoftBody(float x, float y, float mass) {
+    for (int i = 0; i < SPRING_ROWS; i++) {
+        for (int j = 0; j < SPRING_COLS; j++) {
+            Particle *particle = new Particle(x + (i * 200), y + (j * 200), mass);
+            particle->radius = 5.0f;
+            //particle->color = 0xFF000000 + (0x00FFFFFF / SPRING_ROWS) * i;
+            particles.push_back(particle);
+        }
+    }
+}
+
+void Application::ApplySpringForces() {
+    // Apply spring forces
+    for (int i = 0; i < SPRING_ROWS; i++) {
+        for (int j = 0; j < SPRING_COLS; j++) {
+            int index = i * SPRING_COLS + j;
+            if (j < SPRING_COLS - 1) {
+                Particle *particle1 = particles[index];
+                Particle *particle2 = particles[index + 1];
+                Vec2 force = Force::GenerateSpringForce(*particle1, *particle2, restLength, k);
+                particle1->AddForce(force);
+                particle2->AddForce(-force);
+            }
+            if (i < SPRING_ROWS - 1) {
+                Particle *particle1 = particles[index];
+                Particle *particle2 = particles[index + SPRING_COLS];
+                Vec2 force = Force::GenerateSpringForce(*particle1, *particle2, restLength, k);
+                particle1->AddForce(force);
+                particle2->AddForce(-force);
+            }
+            if (i < SPRING_ROWS - 1 && j < SPRING_COLS - 1) {
+                Particle *particle1 = particles[index];
+                Particle *particle2 = particles[index + SPRING_COLS + 1];
+                float diagonalRestLength = sqrt(restLength * restLength + restLength * restLength);
+                Vec2 force = Force::GenerateSpringForce(*particle1, *particle2, diagonalRestLength, k);
+                particle1->AddForce(force);
+                particle2->AddForce(-force);
+            }
+            if (i < SPRING_ROWS - 1 && j > 0) {
+                Particle *particle1 = particles[index];
+                Particle *particle2 = particles[index + SPRING_COLS - 1];
+                float diagonalRestLength = sqrt(restLength * restLength + restLength * restLength);
+                Vec2 force = Force::GenerateSpringForce(*particle1, *particle2, diagonalRestLength, k);
+                particle1->AddForce(force);
+                particle2->AddForce(-force);
+            }
+        }
+    }
+}
+

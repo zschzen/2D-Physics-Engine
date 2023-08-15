@@ -8,4 +8,6 @@ constexpr int PIXELS_PER_METER = 50;
 
 constexpr float GRAVITY = 9.8f;
 
+constexpr float DEG_TO_RAD = 0.0174532925f;
+
 #endif
