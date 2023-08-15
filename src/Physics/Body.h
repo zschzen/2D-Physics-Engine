@@ -3,11 +3,12 @@
 
 #pragma once
 #include "Vec2.h"
+#include "Shape.h"
 #include "SDL_stdinc.h"
 
 struct Body {
     Body() = default;
-    Body(float x, float y, float mass);
+    Body(const Shape& shape, float x, float y, float mass);
     ~Body();
 
     Vec2 position{};
@@ -16,7 +17,8 @@ struct Body {
 
     float mass{};
     float inverseMass{};
-    int radius{};
+    
+    Shape* shape = nullptr;
 
     Uint32 color = 0xFFFFFFFF;
 

@@ -1,7 +1,8 @@
 #include "Body.h"
 
-Body::Body(float x, float y, float mass)
+Body::Body(const Shape& shape, float x, float y, float mass)
 {
+    this->shape = shape.Clone();
     this->position = Vec2(x, y);
     this->mass = mass;
 
@@ -10,7 +11,7 @@ Body::Body(float x, float y, float mass)
 
 Body::~Body()
 {
-
+    delete shape;
 }
 
 void Body::AddForce(const Vec2& force)

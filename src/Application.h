@@ -12,17 +12,11 @@ class Application {
     private:
         bool running = false;
 
-        std::vector<Body*> particles = std::vector<Body*>();
+        std::vector<Body*> bodies = std::vector<Body*>();
         Vec2 pushForce{};
 
         Vec2 mouseCursor = Vec2(0, 0);
-        Body* selectedParticle = nullptr;
-
-        Vec2 anchor{};
-        float k = 300;
-        float restLength = 15;
-
-        const int PARTICLE_COUNT = 10;
+        Body* selectedBody = nullptr;
 
     public:
         Application() = default;
@@ -35,7 +29,7 @@ class Application {
         void Destroy();
 
 private:
-    Body* FindClosestParticle(const Vec2& position);
+    Body* FindClosestBody(const Vec2& position);
 };
 
 #endif
