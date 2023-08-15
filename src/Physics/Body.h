@@ -1,5 +1,5 @@
-#ifndef PARTICLE_H
-#define PARTICLE_H
+#ifndef BODY_H
+#define BODY_H
 
 #pragma once
 #include "Vec2.h"
