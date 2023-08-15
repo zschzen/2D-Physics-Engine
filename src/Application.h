@@ -6,17 +6,17 @@
 #endif
 
 #include "./Graphics.h"
-#include "./Physics/Particle.h"
+#include "./Physics/Body.h"
 
 class Application {
     private:
         bool running = false;
 
-        std::vector<Particle*> particles = std::vector<Particle*>();
+        std::vector<Body*> particles = std::vector<Body*>();
         Vec2 pushForce{};
 
         Vec2 mouseCursor = Vec2(0, 0);
-        Particle* selectedParticle = nullptr;
+        Body* selectedParticle = nullptr;
 
         Vec2 anchor{};
         float k = 300;
@@ -35,7 +35,7 @@ class Application {
         void Destroy();
 
 private:
-    Particle* FindClosestParticle(const Vec2& position);
+    Body* FindClosestParticle(const Vec2& position);
 };
 
 #endif

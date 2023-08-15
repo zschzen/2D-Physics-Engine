@@ -17,7 +17,7 @@ void Application::Setup() {
 
     // Create particles in a chain
     for (int i = 0; i < PARTICLE_COUNT; i++) {
-        Particle* particle = new Particle(anchor.x, anchor.y + (i * restLength), 2.0);
+        Body* particle = new Body(anchor.x, anchor.y + (i * restLength), 2.0);
         particle->radius = 5;
         particle->color = 0xFF000000 | (rand() % 0xFFFFFF);
         particles.push_back(particle);
@@ -202,9 +202,9 @@ void Application::Destroy() {
     Graphics::CloseWindow();
 }
 
-Particle *Application::FindClosestParticle(const Vec2 &position)
+Body *Application::FindClosestParticle(const Vec2 &position)
 {
-    Particle *closestParticle = nullptr;
+    Body *closestParticle = nullptr;
     float closestDistance = 0.0f;
 
     for (const auto &particle: particles) {

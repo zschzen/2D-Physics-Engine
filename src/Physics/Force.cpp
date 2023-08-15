@@ -3,7 +3,7 @@
 #include "./Constants.h"
 #include <algorithm>
 
-Vec2 Force::GenerateDragForce(const Particle& particle, float dragCoefficient) {
+Vec2 Force::GenerateDragForce(const Body& particle, float dragCoefficient) {
     Vec2 dragForce = Vec2();
 
     if (particle.velocity.MagnitudeSquared() > 0.0f) {
@@ -20,7 +20,7 @@ Vec2 Force::GenerateDragForce(const Particle& particle, float dragCoefficient) {
     return dragForce;
 }
 
-Vec2 Force::GenerateFrictionForce(const Particle& particle, float frictionCoefficient) {
+Vec2 Force::GenerateFrictionForce(const Body& particle, float frictionCoefficient) {
     Vec2 frictionForce = Vec2(0, 0);
 
     // Calculate the friction direction (inverse of velocity unit vector)
@@ -35,7 +35,7 @@ Vec2 Force::GenerateFrictionForce(const Particle& particle, float frictionCoeffi
     return frictionForce;
 }
 
-Vec2 Force::GenerateGravitationalForce(const Particle& a, const Particle& b, float G, float minDistance, float maxDistance) {
+Vec2 Force::GenerateGravitationalForce(const Body& a, const Body& b, float G, float minDistance, float maxDistance) {
     // Calculate the distance between the two objects
     Vec2 d = (b.position - a.position);
 
@@ -55,7 +55,7 @@ Vec2 Force::GenerateGravitationalForce(const Particle& a, const Particle& b, flo
     return attractionForce;
 }
 
-Vec2 Force::GenerateSpringForce(const Particle &a, Vec2 anchor, float restLength, float springConstant) {
+Vec2 Force::GenerateSpringForce(const Body &a, Vec2 anchor, float restLength, float springConstant) {
     // Calculate the distance between the particle and the anchor
     Vec2 d = (a.position - anchor);
 
@@ -70,6 +70,6 @@ Vec2 Force::GenerateSpringForce(const Particle &a, Vec2 anchor, float restLength
     return springForce;
 }
 
-Vec2 Force::GenerateSpringForce(const Particle& a, const Particle& b, float restLength, float springConstant) {
+Vec2 Force::GenerateSpringForce(const Body& a, const Body& b, float restLength, float springConstant) {
     return GenerateSpringForce(a, b.position, restLength, springConstant);
 }

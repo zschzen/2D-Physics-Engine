@@ -5,10 +5,10 @@
 #include "Vec2.h"
 #include "SDL_stdinc.h"
 
-struct Particle {
-    Particle() = default;
-    Particle(float x, float y, float mass);
-    ~Particle();
+struct Body {
+    Body() = default;
+    Body(float x, float y, float mass);
+    ~Body();
 
     Vec2 position{};
     Vec2 velocity{};

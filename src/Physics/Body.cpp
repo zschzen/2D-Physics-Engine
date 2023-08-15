@@ -1,6 +1,6 @@
-#include "Particle.h"
+#include "Body.h"
 
-Particle::Particle(float x, float y, float mass)
+Body::Body(float x, float y, float mass)
 {
     this->position = Vec2(x, y);
     this->mass = mass;
@@ -8,17 +8,17 @@ Particle::Particle(float x, float y, float mass)
     this->inverseMass = (mass > 0.0f) ? 1.0f / mass : 0.0f;
 }
 
-Particle::~Particle()
+Body::~Body()
 {
 
 }
 
-void Particle::AddForce(const Vec2& force)
+void Body::AddForce(const Vec2& force)
 {
     netForce += force;
 }
 
-void Particle::Integrate(float deltaTime)
+void Body::Integrate(float deltaTime)
 {
     // Fr = m * a
     acceleration = netForce * inverseMass;
@@ -33,7 +33,7 @@ void Particle::Integrate(float deltaTime)
     ClearForces();
 }
 
-void Particle::ClearForces()
+void Body::ClearForces()
 {
     netForce = Vec2(0, 0);
 }
