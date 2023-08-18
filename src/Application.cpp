@@ -113,11 +113,16 @@ void Application::Update() {
         // Weight force
         Vec2 weight = Vec2(0.0f, body->mass * GRAVITY * PIXELS_PER_METER);
         body->AddForce(weight);
+        
+        // Torque
+        float torque = 20.0f;
+        body->AddTorque(torque);
     }
 
     // Update the bodys integration
     for (const auto &body: bodies) {
-        body->Integrate(deltaTime);
+        body->IntegrateLinear(deltaTime);
+        body->IntegrateAngular(deltaTime);
     }
 
     // Keep bodys inside the screen
@@ -166,7 +171,7 @@ void Application::Render() {
         switch (body->shape->GetType()) {
             case ShapeType::CIRCLE: {
                 CircleShape *circle = dynamic_cast<CircleShape *>(body->shape);
-                Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, 0.0f, body->color);
+                Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation , body->color);
                 break;
             }
             default:

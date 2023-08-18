@@ -14,10 +14,9 @@ enum class ShapeType {
 
 struct Shape {
     virtual ~Shape() = default;
-
     virtual ShapeType GetType() const = 0;
-
     virtual Shape *Clone() const = 0;
+    virtual float GetMomentOfInertia() const = 0;
 };
 
 struct CircleShape : public Shape {
@@ -30,6 +29,8 @@ struct CircleShape : public Shape {
     inline ShapeType GetType() const override { return ShapeType::CIRCLE; }
 
     inline Shape *Clone() const override { return new CircleShape(*this); }
+    
+    inline float GetMomentOfInertia() const override;
 };
 
 struct PolygonShape : public Shape {
@@ -42,6 +43,8 @@ struct PolygonShape : public Shape {
     inline ShapeType GetType() const override { return ShapeType::POLYGON; }
 
     inline Shape *Clone() const override { return new PolygonShape(*this); }
+    
+    inline float GetMomentOfInertia() const override;
 };
 
 struct BoxShape : public PolygonShape {
@@ -54,6 +57,8 @@ struct BoxShape : public PolygonShape {
     inline ShapeType GetType() const override { return ShapeType::BOX; }
 
     inline Shape *Clone() const override { return new BoxShape(*this); }
+    
+    inline float GetMomentOfInertia() const override;
 };
 
 #endif
