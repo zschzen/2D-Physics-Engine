@@ -13,8 +13,8 @@ bool Application::IsRunning() {
 void Application::Setup() {
     running = Graphics::OpenWindow();
 
-    Body* circleBody = new Body(CircleShape(50), Graphics::Width() / 2.0f, Graphics::Height() / 2.0f, 1.0f);
-    bodies.push_back(circleBody);
+    Body* boxBody = new Body(BoxShape(200, 100), Graphics::Width() / 2.0f, Graphics::Height() / 2.0f, 1.0f);
+    bodies.push_back(boxBody);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -95,59 +95,46 @@ void Application::Update() {
 
     // Calculate the deltatime in seconds
     float deltaTime = (SDL_GetTicks() - timePreviousFrame) / 1000.0f;
-    if (deltaTime > 0.016) deltaTime = 0.016;
+    if (deltaTime > MILLISECS_PER_FRAME) deltaTime = MILLISECS_PER_FRAME;
 
     // Set the time of the current frame to be used in the next one
     timePreviousFrame = SDL_GetTicks();
 
-    // Add forces to the bodys
+    // Add forces to the bodies
     for (const auto &body: bodies) {
-        //body->AddForce(Vec2(4.0f, 0.0f) * PIXELS_PER_METER);
-        //body->AddForce(Vec2(0.0f, body->mass * GRAVITY) * PIXELS_PER_METER);
-        body->AddForce(pushForce);
-
-        // Calculate drag force
-        Vec2 drag = Force::GenerateDragForce(*body, 0.001);
-        body->AddForce(drag);
-        
-        // Weight force
-        Vec2 weight = Vec2(0.0f, body->mass * GRAVITY * PIXELS_PER_METER);
-        body->AddForce(weight);
-        
         // Torque
-        float torque = 20.0f;
+        float torque = 200.0f;
         body->AddTorque(torque);
     }
 
-    // Update the bodys integration
-    for (const auto &body: bodies) {
-        body->IntegrateLinear(deltaTime);
-        body->IntegrateAngular(deltaTime);
+    // Integrate the acceleration and velocity to estimate the new position
+    for (auto body: bodies) {
+        body->Update(deltaTime);
     }
 
     // Keep bodys inside the screen
     for (const auto &body: bodies) {
         if (body->shape->GetType() == ShapeType::CIRCLE) {
-            CircleShape* circle = dynamic_cast<CircleShape*>(body->shape);
+            CircleShape *circle = dynamic_cast<CircleShape *>(body->shape);
 
             // Left
             if (body->position.x - circle->radius < 0) {
                 body->position.x = circle->radius;
                 body->velocity.x *= -0.9;
             }
-    
+
             // Right
             if (body->position.x + circle->radius > Graphics::windowWidth) {
                 body->position.x = Graphics::windowWidth - circle->radius;
                 body->velocity.x *= -0.9;
             }
-    
+
             // Top
             if (body->position.y - circle->radius < 0) {
                 body->position.y = circle->radius;
                 body->velocity.y *= -0.9;
             }
-    
+
             // Bottom
             if (body->position.y + circle->radius > Graphics::windowHeight) {
                 body->position.y = Graphics::windowHeight - circle->radius;
@@ -172,6 +159,11 @@ void Application::Render() {
             case ShapeType::CIRCLE: {
                 CircleShape *circle = dynamic_cast<CircleShape *>(body->shape);
                 Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation , body->color);
+                break;
+            }
+            case ShapeType::BOX: {
+                BoxShape *box = dynamic_cast<BoxShape *>(body->shape);
+                Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, 0xFFFFFFFF);
                 break;
             }
             default:

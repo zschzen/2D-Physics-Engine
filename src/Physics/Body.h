@@ -43,6 +43,8 @@ public:
     void IntegrateLinear(float deltaTime);
     void IntegrateAngular(float deltaTime);
 
+    void Update(float deltaTime);
+
 private:
     void ClearForces();
     void ClearTorque();

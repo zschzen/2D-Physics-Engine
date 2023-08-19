@@ -20,45 +20,40 @@ struct Shape {
 };
 
 struct CircleShape : public Shape {
-    float radius;
-
     CircleShape(float radius);
-
     virtual ~CircleShape() = default;
 
-    inline ShapeType GetType() const override { return ShapeType::CIRCLE; }
+    ShapeType GetType() const override { return ShapeType::CIRCLE; }
+    Shape *Clone() const override { return new CircleShape(*this); }
+    float GetMomentOfInertia() const override;
 
-    inline Shape *Clone() const override { return new CircleShape(*this); }
-    
-    inline float GetMomentOfInertia() const override;
+    float radius;
 };
 
 struct PolygonShape : public Shape {
-    std::vector<Vec2> vertices;
+    std::vector<Vec2> localVertices;
+    std::vector<Vec2> worldVertices;
 
     PolygonShape(const std::vector<Vec2> &vertices);
-
     virtual ~PolygonShape() = default;
 
-    inline ShapeType GetType() const override { return ShapeType::POLYGON; }
+    ShapeType GetType() const override { return ShapeType::POLYGON; }
+    Shape *Clone() const override { return new PolygonShape(*this); }
+    float GetMomentOfInertia() const override;
 
-    inline Shape *Clone() const override { return new PolygonShape(*this); }
-    
-    inline float GetMomentOfInertia() const override;
+    // Function to rotate and translate the polygon vertices from "local space" to "world space."
+    void UpdateVertices(float angle, const Vec2& position);
 };
 
 struct BoxShape : public PolygonShape {
     float width, height;
 
     BoxShape(float width, float height);
-
     virtual ~BoxShape() = default;
 
-    inline ShapeType GetType() const override { return ShapeType::BOX; }
-
-    inline Shape *Clone() const override { return new BoxShape(*this); }
-    
-    inline float GetMomentOfInertia() const override;
+    ShapeType GetType() const override { return ShapeType::BOX; }
+    Shape *Clone() const override { return new BoxShape(*this); }
+    float GetMomentOfInertia() const override;
 };
 
 #endif

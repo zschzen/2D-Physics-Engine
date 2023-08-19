@@ -15,26 +15,25 @@ float CircleShape::GetMomentOfInertia() const
 // PolygonShape
 // --------------------
 
-PolygonShape::PolygonShape(const std::vector<Vec2> &vertices) : vertices(vertices) {}
+PolygonShape::PolygonShape(const std::vector<Vec2> &vertices) : localVertices(vertices), worldVertices(vertices)
+{
+    // Resize the world vertices to match the number of local vertices
+    worldVertices.resize(localVertices.size());
+}
 
 float PolygonShape::GetMomentOfInertia() const
 {
-    float numerator = 0.0f;
-    float denominator = 0.0f;
+    return 0.0f;
+}
 
-    for (int i = 0; i < vertices.size(); i++)
-    {
-        Vec2 a = vertices[i];
-        Vec2 b = vertices[(i + 1) % vertices.size()];
-
-        float cross = a.Cross(b);
-        float dot = a.Dot(b);
-
-        numerator += cross * (dot + a.Dot(a) + a.Dot(b));
-        denominator += cross;
+void PolygonShape::UpdateVertices(float angle, const Vec2& position)
+{
+    // Loop all the vertices, transforming from local to world space
+    for (int i = 0; i < localVertices.size(); i++) {
+        // First rotate, then we translate
+        worldVertices[i] = localVertices[i].Rotate(angle);
+        worldVertices[i] += position;
     }
-
-    return numerator / (6.0f * denominator);
 }
 
 // --------------------
@@ -43,9 +42,9 @@ float PolygonShape::GetMomentOfInertia() const
 
 BoxShape::BoxShape(float width, float height) : PolygonShape({
     Vec2(-width / 2.0f, -height / 2.0f),
-    Vec2(width / 2.0f, -height / 2.0f),
-    Vec2(width / 2.0f, height / 2.0f),
-    Vec2(-width / 2.0f, height / 2.0f)
+    Vec2(+width / 2.0f, -height / 2.0f),
+    Vec2(+width / 2.0f, +height / 2.0f),
+    Vec2(-width / 2.0f, +height / 2.0f)
 }), width(width), height(height) {}
 
 float BoxShape::GetMomentOfInertia() const
