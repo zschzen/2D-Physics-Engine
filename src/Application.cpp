@@ -1,5 +1,6 @@
 #include "Application.h"
 
+#include "./Physics/CollisionDetection.h"
 #include "./Physics/Constants.h"
 #include "./Physics/Force.h"
 
@@ -13,8 +14,11 @@ bool Application::IsRunning() {
 void Application::Setup() {
     running = Graphics::OpenWindow();
 
-    Body* boxBody = new Body(BoxShape(200, 100), Graphics::Width() / 2.0f, Graphics::Height() / 2.0f, 1.0f);
-    bodies.push_back(boxBody);
+    Body* bigBall = new Body(CircleShape(100), 100, 100, 1.0f);
+    bodies.push_back(bigBall);
+    
+    Body *smallBall = new Body(CircleShape(50), 500, 100, 1.0f);
+    bodies.push_back(smallBall);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -102,14 +106,31 @@ void Application::Update() {
 
     // Add forces to the bodies
     for (const auto &body: bodies) {
-        // Torque
-        float torque = 200.0f;
-        body->AddTorque(torque);
+        // Add weight force
+        Vec2 weight = Vec2(0, GRAVITY * body->mass * PIXELS_PER_METER);
+        body->AddForce(weight);
+
+        // Add wind force
+        Vec2 wind = Vec2(20 * body->mass * PIXELS_PER_METER, 0);
+        body->AddForce(wind);
     }
 
     // Integrate the acceleration and velocity to estimate the new position
     for (auto body: bodies) {
         body->Update(deltaTime);
+    }
+    
+    // Check collisions
+    for (int i = 0; i <= bodies.size() - 1; ++i) {
+        for (int j = i + 1; j < bodies.size(); ++j) {
+            bodies[i]->isColliding = false;
+            bodies[j]->isColliding = false;
+
+            if (!CollisionDetection::IsColliding(bodies[i], bodies[j])) continue;
+
+            bodies[i]->isColliding = true;
+            bodies[j]->isColliding = true;
+        }
     }
 
     // Keep bodys inside the screen
@@ -155,15 +176,17 @@ void Application::Render() {
     }
     
     for (const auto &body: bodies) {
+        Uint32 color = body->isColliding ? 0xFFFF0000 : 0xFFFFFFFF;
+        
         switch (body->shape->GetType()) {
             case ShapeType::CIRCLE: {
                 CircleShape *circle = dynamic_cast<CircleShape *>(body->shape);
-                Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation , body->color);
+                Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation , color);
                 break;
             }
             case ShapeType::BOX: {
                 BoxShape *box = dynamic_cast<BoxShape *>(body->shape);
-                Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, 0xFFFFFFFF);
+                Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, color);
                 break;
             }
             default:

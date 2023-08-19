@@ -30,6 +30,9 @@ struct Body {
     // Forces and torques
     Vec2 netForce{};
     float netTorque{};
+
+    // Collision data
+    bool isColliding{};
     
 public:
     Shape* shape = nullptr;
