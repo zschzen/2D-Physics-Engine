@@ -7,12 +7,14 @@
 
 #include "./Graphics.h"
 #include "./Physics/Body.h"
+#include "./Physics/Contact.h"
 
 class Application {
     private:
         bool running = false;
 
         std::vector<Body*> bodies = std::vector<Body*>();
+        std::vector<Contact> contacts = std::vector<Contact>();
         Vec2 pushForce{};
 
         Vec2 mouseCursor = Vec2(0, 0);

@@ -14,8 +14,11 @@ bool Application::IsRunning() {
 void Application::Setup() {
     running = Graphics::OpenWindow();
 
-    Body* bigBall = new Body(CircleShape(100), 100, 100, 1.0f);
+    Body* bigBall = new Body(CircleShape(100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
     bodies.push_back(bigBall);
+    
+    Body *mediumBall = new Body(CircleShape(75), 300, 100, 2.5f);
+    bodies.push_back(mediumBall);
     
     Body *smallBall = new Body(CircleShape(50), 500, 100, 1.0f);
     bodies.push_back(smallBall);
@@ -54,8 +57,14 @@ void Application::Input() {
                     pushForce.x = 0;
                 break;
             case SDL_MOUSEMOTION:
-                mouseCursor.x = event.motion.x;
-                mouseCursor.y = event.motion.y;
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+
+                mouseCursor.x = x;
+                mouseCursor.y = y;
+                
+                //bodies[0]->position.x = x;
+                //bodies[0]->position.y = y;
                 break;
             case SDL_MOUSEBUTTONDOWN:
                 if (!selectedBody && event.button.button == SDL_BUTTON_LEFT) {
@@ -76,6 +85,13 @@ void Application::Input() {
 
                     selectedBody->velocity = impulseDirection * impulseMagnitude;
                     selectedBody = nullptr;
+                } else if (event.button.button == SDL_BUTTON_RIGHT) {
+                    // Create a new circle with random radius and mass
+                    float radius = 10 + rand() % 20;
+                    float mass = radius * 0.1f;
+
+                    Body* newBody = new Body(CircleShape(radius), mouseCursor.x, mouseCursor.y, mass);
+                    bodies.push_back(newBody);
                 }
                 break;
         }
@@ -85,7 +101,7 @@ void Application::Input() {
 ///////////////////////////////////////////////////////////////////////////////
 // Update function (called several times per second to update objects)
 ///////////////////////////////////////////////////////////////////////////////
-void Application::Update() {
+void Application::Update() {    
     // Wait some time until the reach the target frame time in milliseconds
     static int timePreviousFrame;
     int timeToWait = MILLISECS_PER_FRAME - (SDL_GetTicks() - timePreviousFrame);
@@ -104,8 +120,12 @@ void Application::Update() {
     // Set the time of the current frame to be used in the next one
     timePreviousFrame = SDL_GetTicks();
 
+    // Clear contacts
+    contacts.clear();
+
     // Add forces to the bodies
     for (const auto &body: bodies) {
+        continue;
         // Add weight force
         Vec2 weight = Vec2(0, GRAVITY * body->mass * PIXELS_PER_METER);
         body->AddForce(weight);
@@ -120,16 +140,23 @@ void Application::Update() {
         body->Update(deltaTime);
     }
     
+    // Reset collision flags
+    for (auto body: bodies) {
+        body->isColliding = false;
+    }
+    
     // Check collisions
     for (int i = 0; i <= bodies.size() - 1; ++i) {
         for (int j = i + 1; j < bodies.size(); ++j) {
-            bodies[i]->isColliding = false;
-            bodies[j]->isColliding = false;
+            Contact contact;
+            if (!CollisionDetection::IsColliding(bodies[i], bodies[j], contact)) continue;            
 
-            if (!CollisionDetection::IsColliding(bodies[i], bodies[j])) continue;
-
+            contacts.push_back(contact);
+            
             bodies[i]->isColliding = true;
             bodies[j]->isColliding = true;
+
+            contact.ResolvePenetration();
         }
     }
 
@@ -176,7 +203,7 @@ void Application::Render() {
     }
     
     for (const auto &body: bodies) {
-        Uint32 color = body->isColliding ? 0xFFFF0000 : 0xFFFFFFFF;
+        Uint32 color = body->isColliding ? 0xFF0000FF : 0xFFFFFFFF;
         
         switch (body->shape->GetType()) {
             case ShapeType::CIRCLE: {
@@ -193,6 +220,13 @@ void Application::Render() {
                 break;
         }
     }
+
+    for (const auto& contact: contacts) {
+        Graphics::DrawFillCircle(contact.start.x, contact.start.y, 3, 0xFFFF00FF);
+        Graphics::DrawFillCircle(contact.end.x, contact.end.y, 3, 0xFFFF00FF);
+        Graphics::DrawLine(contact.start.x, contact.start.y, contact.start.x + contact.normal.x * 15, contact.start.y + contact.normal.y * 15, 0xFFFF00FF);
+    }
+    
     Graphics::RenderFrame();
 }
 
