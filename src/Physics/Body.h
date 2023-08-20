@@ -40,6 +40,8 @@ public:
     Uint32 color = 0xFFFFFFFF;
 
 public:
+    bool IsStatic() const;
+
     void AddForce(const Vec2& force);
     void AddTorque(float torque);
     

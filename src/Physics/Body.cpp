@@ -1,5 +1,8 @@
 #include "Body.h"
 
+#include <cmath>
+#include <limits>
+
 Body::Body(const Shape& shape, float x, float y, float mass)
 {
     this->shape = shape.Clone();
@@ -17,6 +20,11 @@ Body::~Body()
     delete shape;
 }
 
+bool Body::IsStatic() const
+{
+    return std::abs(inverseMass) < std::numeric_limits<float>::epsilon();
+}
+
 void Body::AddForce(const Vec2& force)
 {
     netForce += force;
@@ -29,6 +37,8 @@ void Body::AddTorque(float torque)
 
 void Body::IntegrateLinear(float deltaTime)
 {
+    if (IsStatic()) return;    
+
     // Fr = m * a
     acceleration = netForce * inverseMass;
 
@@ -44,6 +54,8 @@ void Body::IntegrateLinear(float deltaTime)
 
 void Body::IntegrateAngular(float deltaTime)
 {
+    if (IsStatic()) return;
+
     // Find angular acceleration based on torque
     // Fr = I * a
     angularAcceleration = netTorque * inverseI;
