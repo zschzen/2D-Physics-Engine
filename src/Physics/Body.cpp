@@ -35,6 +35,20 @@ void Body::AddTorque(float torque)
     netTorque += torque;
 }
 
+////////////////////////////////////////////////////////
+// Impulse is an instantaneous change in velocity,
+// inversely proportional to the mass of the object.
+// Momentum: P = m * v
+// Impulse J is the change in momentum: J = ΔP = m * Δv
+// The change in velocity is Δv = J / m
+////////////////////////////////////////////////////////
+void Body::ApplyImpulse(const Vec2 &j)
+{
+    if (IsStatic()) return;
+
+    velocity += j * inverseMass;
+}
+
 void Body::IntegrateLinear(float deltaTime)
 {
     if (IsStatic()) return;    

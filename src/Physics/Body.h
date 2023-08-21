@@ -33,6 +33,9 @@ struct Body {
 
     // Collision data
     bool isColliding{};
+
+    // Restitution ([e]lasticity)
+    float restitution = 1.0f;
     
 public:
     Shape* shape = nullptr;
@@ -44,6 +47,7 @@ public:
 
     void AddForce(const Vec2& force);
     void AddTorque(float torque);
+    void ApplyImpulse(const Vec2& j);
     
     void IntegrateLinear(float deltaTime);
     void IntegrateAngular(float deltaTime);
