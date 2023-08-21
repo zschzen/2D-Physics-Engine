@@ -14,14 +14,32 @@ bool Application::IsRunning() {
 void Application::Setup() {
     running = Graphics::OpenWindow();
 
-    Body* bigBall = new Body(CircleShape(100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
-    bodies.push_back(bigBall);
+    //Body* bigBall = new Body(CircleShape(100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
+    //bodies.push_back(bigBall);
     
-    Body *mediumBall = new Body(CircleShape(75), 300, 100, 2.5f);
-    bodies.push_back(mediumBall);
+    // Create the balls just like 8-ball pool in a pyramid shape
+    int rows = 5;
+    int balls = 1;
+    int x = 0;
+    int y = 0;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < balls; j++) {
+            Body* ball = new Body(CircleShape(10), Graphics::Width() / 2 + x, Graphics::Height() / 2 + y, 10.0f);
+            ball->restitution = 0.9f;
+            ball->color = 0xFF0000FF;
+            bodies.push_back(ball);
+            x += 20;
+        }
+        balls++;
+        x = -10 * (balls - 1);
+        y += 20;
+    }
     
-    Body *smallBall = new Body(CircleShape(50), 500, 100, 1.0f);
-    bodies.push_back(smallBall);
+    // white ball
+    Body* ball = new Body(CircleShape(10), 100, 300, 15.0f);
+    ball->restitution = 0.9f;
+    ball->color = 0xFFFFFFFF;
+    bodies.push_back(ball);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -87,10 +105,14 @@ void Application::Input() {
                     selectedBody = nullptr;
                 } else if (event.button.button == SDL_BUTTON_RIGHT) {
                     // Create a new circle with random radius and mass
-                    float radius = 10 + rand() % 20;
-                    float mass = radius * 0.1f;
+                    float radius = 25;
+                    float mass = radius;
+                    float restitution = 1.0f;
 
                     Body* newBody = new Body(CircleShape(radius), mouseCursor.x, mouseCursor.y, mass);
+                    newBody->restitution = restitution;
+                    // random Uint32 color
+                    newBody->color = 0xFF000000 | (rand() % 0xFFFFFF);
                     bodies.push_back(newBody);
                 }
                 break;
@@ -124,24 +146,21 @@ void Application::Update() {
     contacts.clear();
 
     // Add forces to the bodies
-    for (const auto &body: bodies) {
-        continue;
-        // Add weight force
-        Vec2 weight = Vec2(0, GRAVITY * body->mass * PIXELS_PER_METER);
-        body->AddForce(weight);
-
-        // Add wind force
-        Vec2 wind = Vec2(20 * body->mass * PIXELS_PER_METER, 0);
-        body->AddForce(wind);
+    for (auto& body: bodies) {
+        // drag force
+        if (!body || body->IsStatic()) continue;
+        Vec2 drag = Force::GenerateDragForce(*body, .025f);
+        body->AddForce(drag);
     }
 
     // Integrate the acceleration and velocity to estimate the new position
-    for (auto body: bodies) {
+    for (auto& body: bodies) {
+        if (!body || body->IsStatic()) continue;
         body->Update(deltaTime);
     }
     
     // Reset collision flags
-    for (auto body: bodies) {
+    for (auto& body: bodies) {
         body->isColliding = false;
     }
     
@@ -149,14 +168,15 @@ void Application::Update() {
     for (int i = 0; i <= bodies.size() - 1; ++i) {
         for (int j = i + 1; j < bodies.size(); ++j) {
             Contact contact;
-            if (!CollisionDetection::IsColliding(bodies[i], bodies[j], contact)) continue;            
+            if (!CollisionDetection::IsColliding(bodies[i], bodies[j], contact)) continue;
+
+            // Resolve collision
+            contact.ResolveCollision();
 
             contacts.push_back(contact);
             
             bodies[i]->isColliding = true;
             bodies[j]->isColliding = true;
-
-            contact.ResolvePenetration();
         }
     }
 
@@ -208,7 +228,7 @@ void Application::Render() {
         switch (body->shape->GetType()) {
             case ShapeType::CIRCLE: {
                 CircleShape *circle = dynamic_cast<CircleShape *>(body->shape);
-                Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation , color);
+                Graphics::DrawFillCircle(body->position.x, body->position.y, circle->radius, body->color);
                 break;
             }
             case ShapeType::BOX: {
@@ -222,6 +242,7 @@ void Application::Render() {
     }
 
     for (const auto& contact: contacts) {
+        continue;
         Graphics::DrawFillCircle(contact.start.x, contact.start.y, 3, 0xFFFF00FF);
         Graphics::DrawFillCircle(contact.end.x, contact.end.y, 3, 0xFFFF00FF);
         Graphics::DrawLine(contact.start.x, contact.start.y, contact.start.x + contact.normal.x * 15, contact.start.y + contact.normal.y * 15, 0xFFFF00FF);
