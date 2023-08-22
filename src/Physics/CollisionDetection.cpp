@@ -1,7 +1,6 @@
 #include "CollisionDetection.h"
 
 #include "Body.h"
-
 #include "Contact.h"
 
 bool CollisionDetection::IsColliding(Body* a, Body* b, Contact& contact)
@@ -12,6 +11,11 @@ bool CollisionDetection::IsColliding(Body* a, Body* b, Contact& contact)
     if (typeA == ShapeType::CIRCLE && typeB == ShapeType::CIRCLE)
     {
         return IsCollidingCircleCircle(a, b, contact);
+    }
+    else if (typeA == ShapeType::POLYGON || typeA == ShapeType::BOX &&
+             typeB == ShapeType::POLYGON || typeB == ShapeType::BOX)
+    {
+        return IsCollidingPolygonPolygon(a, b, contact);
     }
 
     return false;
@@ -46,5 +50,34 @@ bool CollisionDetection::IsCollidingCircleCircle(Body* a, Body* b, Contact& cont
     // Set the contact depth
     contact.depth = (contact.end - contact.start).Magnitude();
 
+    return true;
+}
+
+bool CollisionDetection::IsCollidingPolygonPolygon(Body* a, Body* b, Contact& contact) {
+    const PolygonShape* aPolygonShape = (PolygonShape*) a->shape;
+    const PolygonShape* bPolygonShape = (PolygonShape*) b->shape;
+
+    Vec2 aAxis, aPoint;
+    float abSeparation = aPolygonShape->FindMinSeparation(*bPolygonShape, aAxis, aPoint);
+    if (abSeparation >= 0) return false;
+    
+    Vec2 bAxis, bPoint;
+    float baSeparation = bPolygonShape->FindMinSeparation(*aPolygonShape, bAxis, bPoint);
+    if (baSeparation >= 0) return false;
+    
+    contact.a = a;
+    contact.b = b;
+
+    if (abSeparation > baSeparation) {
+        contact.depth = -abSeparation;
+        contact.normal = aAxis.Normal();
+        contact.start = aPoint;
+        contact.end = aPoint + contact.normal * contact.depth;
+    } else {
+        contact.depth = -baSeparation;
+        contact.normal = -bAxis.Normal();
+        contact.start = bPoint - contact.normal * contact.depth;
+        contact.end = bPoint;
+    }
     return true;
 }
