@@ -13,20 +13,17 @@ bool Application::IsRunning() {
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Setup() {
     running = Graphics::OpenWindow();
-
-    //Body* bigBall = new Body(CircleShape(100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
-    //bodies.push_back(bigBall);
     
     // Create the balls just like 8-ball pool in a pyramid shape
     int rows = 5;
     int balls = 1;
     int x = 0;
-    int y = 0;
+    int y = 100;
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < balls; j++) {
-            Body* ball = new Body(CircleShape(10), Graphics::Width() / 2 + x, Graphics::Height() / 2 + y, 10.0f);
+            Body* ball = new Body(CircleShape(10), Graphics::Width() / 2 + x, Graphics::Height() / 2 + y, 20.0f);
             ball->restitution = 0.9f;
-            ball->color = 0xFF0000FF;
+            ball->color = 0xFF0000FF | (rand() % 0xFFFFFFFF);
             bodies.push_back(ball);
             x += 20;
         }
@@ -36,7 +33,7 @@ void Application::Setup() {
     }
     
     // white ball
-    Body* ball = new Body(CircleShape(10), 100, 300, 15.0f);
+    Body* ball = new Body(CircleShape(12), Graphics::Width() / 2, 150, 30.0f);
     ball->restitution = 0.9f;
     ball->color = 0xFFFFFFFF;
     bodies.push_back(ball);
@@ -103,17 +100,6 @@ void Application::Input() {
 
                     selectedBody->velocity = impulseDirection * impulseMagnitude;
                     selectedBody = nullptr;
-                } else if (event.button.button == SDL_BUTTON_RIGHT) {
-                    // Create a new circle with random radius and mass
-                    float radius = 25;
-                    float mass = radius;
-                    float restitution = 1.0f;
-
-                    Body* newBody = new Body(CircleShape(radius), mouseCursor.x, mouseCursor.y, mass);
-                    newBody->restitution = restitution;
-                    // random Uint32 color
-                    newBody->color = 0xFF000000 | (rand() % 0xFFFFFF);
-                    bodies.push_back(newBody);
                 }
                 break;
         }
@@ -143,7 +129,7 @@ void Application::Update() {
     timePreviousFrame = SDL_GetTicks();
 
     // Clear contacts
-    contacts.clear();
+    //contacts.clear();
 
     // Add forces to the bodies
     for (auto& body: bodies) {
