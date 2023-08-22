@@ -41,6 +41,15 @@ struct PolygonShape : public Shape {
     Shape *Clone() const override { return new PolygonShape(*this); }
     float GetMomentOfInertia() const override;
 
+    // Get the edge
+    Vec2 GetEdge(int index) const;
+
+    // Get the perpendicular of the edge
+    Vec2 GetNormal(int index) const;
+
+    // Get minimum sepration between polygons
+    float FindMinSeparation(const PolygonShape& other, Vec2& outAxis, Vec2& outPoint) const;
+
     // Function to rotate and translate the polygon vertices from "local space" to "world space."
     void UpdateVertices(float angle, const Vec2& position);
 };
