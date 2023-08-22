@@ -14,29 +14,15 @@ bool Application::IsRunning() {
 void Application::Setup() {
     running = Graphics::OpenWindow();
     
-    // Create the balls just like 8-ball pool in a pyramid shape
-    int rows = 5;
-    int balls = 1;
-    int x = 0;
-    int y = 100;
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < balls; j++) {
-            Body* ball = new Body(CircleShape(10), Graphics::Width() / 2 + x, Graphics::Height() / 2 + y, 20.0f);
-            ball->restitution = 0.9f;
-            ball->color = 0xFF0000FF | (rand() % 0xFFFFFFFF);
-            bodies.push_back(ball);
-            x += 20;
-        }
-        balls++;
-        x = -10 * (balls - 1);
-        y += 20;
-    }
-    
-    // white ball
-    Body* ball = new Body(CircleShape(12), Graphics::Width() / 2, 150, 30.0f);
-    ball->restitution = 0.9f;
-    ball->color = 0xFFFFFFFF;
-    bodies.push_back(ball);
+    // Create box
+    Body* boxA = new Body(BoxShape(100, 100), Graphics::Width() / 2, Graphics::Height() / 2, 1.0f);
+    boxA->angularVelocity = 0.4f;
+    boxA->rotation = 2.3f;
+    Body* boxB = new Body(BoxShape(100, 100), Graphics::Width() / 2, Graphics::Height() / 2, 1.0f);
+    //boxB->angularVelocity = 0.1f;
+
+    bodies.push_back(boxA);
+    bodies.push_back(boxB);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -78,29 +64,8 @@ void Application::Input() {
                 mouseCursor.x = x;
                 mouseCursor.y = y;
                 
-                //bodies[0]->position.x = x;
-                //bodies[0]->position.y = y;
-                break;
-            case SDL_MOUSEBUTTONDOWN:
-                if (!selectedBody && event.button.button == SDL_BUTTON_LEFT) {
-                    int x, y;
-                    SDL_GetMouseState(&x, &y);
-
-                    // Get nearest body to the mouse cursor
-                    selectedBody = FindClosestBody(Vec2(x, y));
-
-                    mouseCursor.x = x;
-                    mouseCursor.y = y;
-                }
-                break;
-            case SDL_MOUSEBUTTONUP:
-                if (selectedBody && event.button.button == SDL_BUTTON_LEFT) {
-                    Vec2 impulseDirection = (selectedBody->position - mouseCursor).UnitVector();
-                    float impulseMagnitude = (selectedBody->position - mouseCursor).Magnitude() * 5.0;
-
-                    selectedBody->velocity = impulseDirection * impulseMagnitude;
-                    selectedBody = nullptr;
-                }
+                bodies[0]->position.x = x;
+                bodies[0]->position.y = y;
                 break;
         }
     }
@@ -129,7 +94,7 @@ void Application::Update() {
     timePreviousFrame = SDL_GetTicks();
 
     // Clear contacts
-    //contacts.clear();
+    contacts.clear();
 
     // Add forces to the bodies
     for (auto& body: bodies) {
@@ -157,7 +122,7 @@ void Application::Update() {
             if (!CollisionDetection::IsColliding(bodies[i], bodies[j], contact)) continue;
 
             // Resolve collision
-            contact.ResolveCollision();
+            //contact.ResolveCollision();
 
             contacts.push_back(contact);
             
@@ -228,9 +193,8 @@ void Application::Render() {
     }
 
     for (const auto& contact: contacts) {
-        continue;
         Graphics::DrawFillCircle(contact.start.x, contact.start.y, 3, 0xFFFF00FF);
-        Graphics::DrawFillCircle(contact.end.x, contact.end.y, 3, 0xFFFF00FF);
+        Graphics::DrawFillCircle(contact.end.x, contact.end.y, 3, 0xFFFFFFFF);
         Graphics::DrawLine(contact.start.x, contact.start.y, contact.start.x + contact.normal.x * 15, contact.start.y + contact.normal.y * 15, 0xFFFF00FF);
     }
     
