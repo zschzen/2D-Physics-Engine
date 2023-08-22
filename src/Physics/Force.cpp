@@ -6,12 +6,14 @@
 Vec2 Force::GenerateDragForce(const Body& particle, float dragCoefficient) {
     Vec2 dragForce = Vec2();
 
-    if (particle.velocity.MagnitudeSquared() > 0.0f) {
+    const float velocitySquared = particle.velocity.MagnitudeSquared();
+    
+    if (velocitySquared > 0.0f) {
         // Drag direction is the opposite of the velocity
         Vec2 dragDirection = -particle.velocity.UnitVector();
 
         // Calculate the magnitude of the drag force
-        float dragMagnitude = dragCoefficient * particle.velocity.MagnitudeSquared();
+        float dragMagnitude = dragCoefficient * velocitySquared;
 
         // Generate the final drag force
         dragForce = dragDirection * dragMagnitude;
@@ -24,7 +26,7 @@ Vec2 Force::GenerateFrictionForce(const Body& particle, float frictionCoefficien
     Vec2 frictionForce = Vec2(0, 0);
 
     // Calculate the friction direction (inverse of velocity unit vector)
-    Vec2 frictionDirection = particle.velocity.UnitVector() * -1.0;
+    Vec2 frictionDirection = -particle.velocity.UnitVector();
 
     // Calculate the friction magnitude
     float frictionMagnitude = frictionCoefficient;
@@ -41,7 +43,7 @@ Vec2 Force::GenerateGravitationalForce(const Body& a, const Body& b, float G, fl
 
     float distanceSquared = d.MagnitudeSquared();
 
-    // Clamp the values of the distance (to allow for some insteresting visual effects)
+    // Clamp the values of the distance (to allow for some interesting visual effects)
     distanceSquared = std::clamp(distanceSquared, minDistance, maxDistance);
 
     // Calculate the direction of the attraction force
