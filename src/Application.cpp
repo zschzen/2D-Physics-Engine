@@ -139,6 +139,13 @@ void Application::Update() {
                 body->velocity.y *= -0.9;
             }
         }
+
+        // if anybody is off-screen, delete it
+        if (body->position.x < 0 || body->position.x > Graphics::windowWidth ||
+            body->position.y < 0 || body->position.y > Graphics::windowHeight) {
+            delete body;
+            bodies.erase(std::remove(bodies.begin(), bodies.end(), body), bodies.end());
+        }
     }
 }
 
@@ -158,7 +165,7 @@ void Application::Render() {
         switch (body->shape->GetType()) {
             case ShapeType::CIRCLE: {
                 CircleShape *circle = dynamic_cast<CircleShape *>(body->shape);
-                Graphics::DrawFillCircle(body->position.x, body->position.y, circle->radius, body->color);
+                Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation, color);
                 break;
             }
             case ShapeType::BOX: {
