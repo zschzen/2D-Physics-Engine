@@ -58,13 +58,7 @@ void Application::Update() {
     // Wait some time until the reach the target frame time in milliseconds
     static int timePreviousFrame;
     int timeToWait = MILLISECS_PER_FRAME - (SDL_GetTicks() - timePreviousFrame);
-    if (timeToWait > 0) {
-#if __EMSCRIPTEN__
-        emscripten_sleep(timeToWait);
-#else
-        SDL_Delay(timeToWait);
-#endif
-    }
+    if (timeToWait > 0) DELAY(timeToWait);
 
     // Calculate the deltatime in seconds
     float deltaTime = (SDL_GetTicks() - timePreviousFrame) / 1000.0f;
@@ -139,12 +133,16 @@ void Application::Update() {
                 body->velocity.y *= -0.9;
             }
         }
+    }
 
-        // if anybody is off-screen, delete it
-        if (body->position.x < 0 || body->position.x > Graphics::windowWidth ||
-            body->position.y < 0 || body->position.y > Graphics::windowHeight) {
-            delete body;
-            bodies.erase(std::remove(bodies.begin(), bodies.end(), body), bodies.end());
+    // if anybody is off-screen, delete it safely
+    for (auto it = bodies.begin(); it != bodies.end();) {
+        if ((*it)->position.x < 0 || (*it)->position.x > Graphics::windowWidth ||
+            (*it)->position.y < 0 || (*it)->position.y > Graphics::windowHeight) {
+            delete *it;
+            it = bodies.erase(it);
+        } else {
+            ++it;
         }
     }
 }
@@ -178,11 +176,13 @@ void Application::Render() {
         }
     }
 
+    /*
     for (const auto& contact: contacts) {
         Graphics::DrawFillCircle(contact.start.x, contact.start.y, 3, 0xFFFF00FF);
         Graphics::DrawFillCircle(contact.end.x, contact.end.y, 3, 0xFFFFFFFF);
         Graphics::DrawLine(contact.start.x, contact.start.y, contact.start.x + contact.normal.x * 15, contact.start.y + contact.normal.y * 15, 0xFFFF00FF);
     }
+    */
     
     Graphics::RenderFrame();
 }

@@ -1,9 +1,13 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#if __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#define DELAY(timeToWait) emscripten_sleep(timeToWait)
+#else
+#define DELAY(timeToWait) SDL_Delay(timeToWait)
 #endif
+
 
 #include "./Graphics.h"
 #include "./Physics/Body.h"
