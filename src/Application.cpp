@@ -143,8 +143,8 @@ void Application::Update() {
         // if anybody is off-screen, delete it
         if (body->position.x < 0 || body->position.x > Graphics::windowWidth ||
             body->position.y < 0 || body->position.y > Graphics::windowHeight) {
-            bodies.erase(std::remove(bodies.begin(), bodies.end(), body), bodies.end());
             delete body;
+            bodies.erase(std::remove(bodies.begin(), bodies.end(), body), bodies.end());
         }
     }
 }
