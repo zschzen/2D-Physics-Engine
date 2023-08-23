@@ -109,37 +109,6 @@ void Application::Update() {
         }
     }
 
-    // Keep bodys inside the screen
-    for (const auto &body: bodies) {
-        if (body->shape->GetType() == ShapeType::CIRCLE) {
-            CircleShape *circle = dynamic_cast<CircleShape *>(body->shape);
-
-            // Left
-            if (body->position.x - circle->radius < 0) {
-                body->position.x = circle->radius;
-                body->velocity.x *= -0.9;
-            }
-
-            // Right
-            if (body->position.x + circle->radius > Graphics::windowWidth) {
-                body->position.x = Graphics::windowWidth - circle->radius;
-                body->velocity.x *= -0.9;
-            }
-
-            // Top
-            if (body->position.y - circle->radius < 0) {
-                body->position.y = circle->radius;
-                body->velocity.y *= -0.9;
-            }
-
-            // Bottom
-            if (body->position.y + circle->radius > Graphics::windowHeight) {
-                body->position.y = Graphics::windowHeight - circle->radius;
-                body->velocity.y *= -0.9;
-            }
-        }
-    }
-
     // if anybody is off-screen, delete it safely
     for (auto it = bodies.begin(); it != bodies.end();) {
         if ((*it)->position.x < 0 || (*it)->position.x > Graphics::windowWidth ||
