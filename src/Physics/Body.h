@@ -48,6 +48,7 @@ public:
     void AddForce(const Vec2& force);
     void AddTorque(float torque);
     void ApplyImpulse(const Vec2& j);
+    void ApplyImpulse(const Vec2& j, const Vec2& contactVector);
     
     void IntegrateLinear(float deltaTime);
     void IntegrateAngular(float deltaTime);

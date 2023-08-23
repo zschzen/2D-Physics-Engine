@@ -49,6 +49,14 @@ void Body::ApplyImpulse(const Vec2 &j)
     velocity += j * inverseMass;
 }
 
+void Body::ApplyImpulse(const Vec2 &j, const Vec2 &contactVector)
+{
+    if (IsStatic()) return;
+
+    velocity += j * inverseMass;
+    angularVelocity += inverseI * contactVector.Cross(j);
+}
+
 void Body::IntegrateLinear(float deltaTime)
 {
     if (IsStatic()) return;    
