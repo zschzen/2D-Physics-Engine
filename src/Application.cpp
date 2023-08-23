@@ -14,17 +14,22 @@ bool Application::IsRunning() {
 void Application::Setup() {
     running = Graphics::OpenWindow();
 
-    // Create box
-    Body* bigBox = new Body(BoxShape(100, 100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
-    bigBox->rotation = 1.4f;
-    bigBox->restitution = 0.5f;
-
-    // Create floor
+    // Create walls and floor
     Body* floorBox = new Body(BoxShape(Graphics::Width() - 50, 50), Graphics::Width() / 2, Graphics::Height() - 50, 0.0f);
+    Body* leftWallBox = new Body(BoxShape(50, Graphics::Height() - 100), 50, Graphics::Height() / 2.0 - 25, 0.0);;
+    Body* rightWallBox = new Body(BoxShape(50, Graphics::Height() - 100), Graphics::Width() - 50, Graphics::Height() / 2.0 - 25, 0.0);
     floorBox->restitution = 0.2f;
-
+    leftWallBox->restitution = 0.2f;
+    rightWallBox->restitution = 0.2f;
     bodies.push_back(floorBox);
-    bodies.push_back(bigBox);
+    bodies.push_back(leftWallBox);
+    bodies.push_back(rightWallBox);
+
+    // Create obstacles
+    Body* pBody = new Body(BoxShape(100, 100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
+    pBody->rotation = 1.4f;
+    pBody->restitution = 0.5f;
+    bodies.push_back(pBody);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -44,8 +49,8 @@ void Application::Input() {
             case SDL_MOUSEBUTTONDOWN:
                 int x, y;
                 SDL_GetMouseState(&x, &y);
-                Body* newBox = new Body(BoxShape(25, 25), x, y, 1.0f);
-                bodies.push_back(newBox);
+                Body* newBody = new Body(BoxShape(25, 25), x, y, 1.0f);
+                bodies.push_back(newBody);
                 break;
         }
     }
