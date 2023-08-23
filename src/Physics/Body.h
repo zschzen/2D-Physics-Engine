@@ -37,6 +37,9 @@ struct Body {
     // Restitution ([e]lasticity)
     float restitution = 1.0f;
     
+    // Friction
+    float friction = 1.0f;
+    
 public:
     Shape* shape = nullptr;
 
