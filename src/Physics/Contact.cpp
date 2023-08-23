@@ -48,8 +48,10 @@ void Contact::ResolveCollision() const {
                                                                                + rb.Cross(tangent) * rb.Cross(tangent) * b->inverseI);
     Vec2 Jt = frictionImpulseDirection * frictionImpulseMagnitude;
     
+
+    // Sum the two impulses
     Vec2 J = Jn + Jt;
-    
+
     // Apply the impulse
     a->ApplyImpulse(J, ra);
     b->ApplyImpulse(-J, rb);
