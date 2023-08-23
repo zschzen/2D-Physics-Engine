@@ -16,7 +16,7 @@ void Application::Setup() {
 
     // Create walls and floor
     Body* floorBox = new Body(BoxShape(Graphics::Width() - 50, 50), Graphics::Width() / 2, Graphics::Height() - 50, 0.0f);
-    Body* leftWallBox = new Body(BoxShape(50, Graphics::Height() - 100), 50, Graphics::Height() / 2.0 - 25, 0.0);;
+    Body* leftWallBox = new Body(BoxShape(50, Graphics::Height() - 100), 50, Graphics::Height() / 2.0 - 25, 0.0);
     Body* rightWallBox = new Body(BoxShape(50, Graphics::Height() - 100), Graphics::Width() - 50, Graphics::Height() / 2.0 - 25, 0.0);
     floorBox->restitution = 0.2f;
     leftWallBox->restitution = 0.2f;
