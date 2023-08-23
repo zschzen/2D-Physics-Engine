@@ -13,16 +13,18 @@ bool Application::IsRunning() {
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Setup() {
     running = Graphics::OpenWindow();
-    
-    // Create box
-    Body* boxA = new Body(BoxShape(100, 100), Graphics::Width() / 2, Graphics::Height() / 2, 1.0f);
-    boxA->angularVelocity = 0.4f;
-    boxA->rotation = 2.3f;
-    Body* boxB = new Body(BoxShape(100, 100), Graphics::Width() / 2, Graphics::Height() / 2, 1.0f);
-    //boxB->angularVelocity = 0.1f;
 
-    bodies.push_back(boxA);
-    bodies.push_back(boxB);
+    // Create box
+    Body* bigBox = new Body(BoxShape(100, 100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
+    bigBox->rotation = 1.4f;
+    bigBox->restitution = 0.5f;
+
+    // Create floor
+    Body* floorBox = new Body(BoxShape(Graphics::Width() - 50, 50), Graphics::Width() / 2, Graphics::Height() - 50, 0.0f);
+    floorBox->restitution = 0.2f;
+
+    bodies.push_back(floorBox);
+    bodies.push_back(bigBox);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,34 +40,12 @@ void Application::Input() {
             case SDL_KEYDOWN:
                 if (event.key.keysym.sym == SDLK_ESCAPE)
                     running = false;
-                if (event.key.keysym.sym == SDLK_UP)
-                    pushForce.y = -50 * PIXELS_PER_METER;
-                if (event.key.keysym.sym == SDLK_RIGHT)
-                    pushForce.x = 50 * PIXELS_PER_METER;
-                if (event.key.keysym.sym == SDLK_DOWN)
-                    pushForce.y = 50 * PIXELS_PER_METER;
-                if (event.key.keysym.sym == SDLK_LEFT)
-                    pushForce.x = -50 * PIXELS_PER_METER;
                 break;
-            case SDL_KEYUP:
-                if (event.key.keysym.sym == SDLK_UP)
-                    pushForce.y = 0;
-                if (event.key.keysym.sym == SDLK_RIGHT)
-                    pushForce.x = 0;
-                if (event.key.keysym.sym == SDLK_DOWN)
-                    pushForce.y = 0;
-                if (event.key.keysym.sym == SDLK_LEFT)
-                    pushForce.x = 0;
-                break;
-            case SDL_MOUSEMOTION:
+            case SDL_MOUSEBUTTONDOWN:
                 int x, y;
                 SDL_GetMouseState(&x, &y);
-
-                mouseCursor.x = x;
-                mouseCursor.y = y;
-                
-                bodies[0]->position.x = x;
-                bodies[0]->position.y = y;
+                Body* newBox = new Body(BoxShape(25, 25), x, y, 1.0f);
+                bodies.push_back(newBox);
                 break;
         }
     }
@@ -100,13 +80,12 @@ void Application::Update() {
     for (auto& body: bodies) {
         // drag force
         if (!body || body->IsStatic()) continue;
-        Vec2 drag = Force::GenerateDragForce(*body, .025f);
-        body->AddForce(drag);
+        Vec2 weight = Vec2(0, GRAVITY * body->mass * PIXELS_PER_METER);
+        body->AddForce(weight);
     }
 
     // Integrate the acceleration and velocity to estimate the new position
     for (auto& body: bodies) {
-        if (!body || body->IsStatic()) continue;
         body->Update(deltaTime);
     }
     
@@ -122,7 +101,7 @@ void Application::Update() {
             if (!CollisionDetection::IsColliding(bodies[i], bodies[j], contact)) continue;
 
             // Resolve collision
-            //contact.ResolveCollision();
+            contact.ResolveCollision();
 
             contacts.push_back(contact);
             
