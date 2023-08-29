@@ -24,10 +24,26 @@ void Application::Setup() {
     bodies.push_back(floorBox);
     bodies.push_back(leftWallBox);
     bodies.push_back(rightWallBox);
+    
+    // TODO: Create a polygon generator function
+    // Pentagram vertices local coordinates
+    std::vector<Vec2> pentVertices = {
+        Vec2(0, -100),
+        Vec2(95, -31),
+        Vec2(59, 81),
+        Vec2(-59, 81),
+        Vec2(-95, -31)
+    };
+    
+    // Right triangle vertices local coordinates
+    std::vector<Vec2> rightTriangleVertices = {
+        Vec2(0, 0),
+        Vec2(100, 0),
+        Vec2(0, 100)
+    };
 
     // Create obstacles
-    Body* pBody = new Body(BoxShape(100, 100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
-    pBody->rotation = 1.4f;
+    Body* pBody = new Body(PolygonShape(pentVertices), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
     pBody->restitution = 0.5f;
     bodies.push_back(pBody);
 }
@@ -49,7 +65,16 @@ void Application::Input() {
             case SDL_MOUSEBUTTONDOWN:
                 int x, y;
                 SDL_GetMouseState(&x, &y);
-                Body* newBody = new Body(BoxShape(25, 25), x, y, 1.0f);
+                Body* newBody;
+                
+                // left button
+                if (event.button.button == SDL_BUTTON_LEFT) {
+                    newBody = new Body(CircleShape(25), x, y, 1.0f);
+                } else if (event.button.button == SDL_BUTTON_RIGHT) {
+                    newBody = new Body(BoxShape(50, 50), x, y, 1.0f);
+                } else {
+                    break;
+                }
                 bodies.push_back(newBody);
                 break;
         }
@@ -59,7 +84,7 @@ void Application::Input() {
 ///////////////////////////////////////////////////////////////////////////////
 // Update function (called several times per second to update objects)
 ///////////////////////////////////////////////////////////////////////////////
-void Application::Update() {    
+void Application::Update() {
     // Wait some time until the reach the target frame time in milliseconds
     static int timePreviousFrame;
     int timeToWait = MILLISECS_PER_FRAME - (SDL_GetTicks() - timePreviousFrame);
@@ -73,7 +98,7 @@ void Application::Update() {
     timePreviousFrame = SDL_GetTicks();
 
     // Clear contacts
-    contacts.clear();
+    //contacts.clear();
 
     // Add forces to the bodies
     for (auto& body: bodies) {
@@ -102,7 +127,7 @@ void Application::Update() {
             // Resolve collision
             contact.ResolveCollision();
 
-            contacts.push_back(contact);
+            //contacts.push_back(contact);
             
             bodies[i]->isColliding = true;
             bodies[j]->isColliding = true;
@@ -119,6 +144,8 @@ void Application::Update() {
             ++it;
         }
     }
+    
+    bodies[3]->rotation += 0.25f * deltaTime;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -143,6 +170,11 @@ void Application::Render() {
             case ShapeType::BOX: {
                 BoxShape *box = dynamic_cast<BoxShape *>(body->shape);
                 Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, color);
+                break;
+            }
+            case ShapeType::POLYGON: {
+                PolygonShape *polygon = dynamic_cast<PolygonShape *>(body->shape);
+                Graphics::DrawPolygon(body->position.x, body->position.y, polygon->worldVertices, color);
                 break;
             }
             default:
