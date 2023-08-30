@@ -49,7 +49,7 @@ void Application::Setup() {
     };
 
     // Create obstacles
-    Entity* centerObstacle = new Entity(PolygonShape(rightTriangleVertices), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
+    Entity* centerObstacle = new Entity(BoxShape(100, 100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
     centerObstacle->SetTexture("./assets/metal.png");
     centerObstacle->body->restitution = 0.1f;
     entities.push_back(centerObstacle);
