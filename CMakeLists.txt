@@ -4,7 +4,7 @@ cmake_policy(SET CMP0091 NEW)
 cmake_policy(SET CMP0015 NEW)
 project( 2D-Physics-Engine-Pikuma )
 
-set(CMAKE_VERBOSE_MAKEFILE on)
+set( CMAKE_VERBOSE_MAKEFILE ON)
 set( CMAKE_CXX_STANDARD 17 CACHE STRING "" FORCE )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "" FORCE )
 
@@ -13,10 +13,10 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Android" )
 else()
     add_executable( main )
     set_target_properties( main PROPERTIES OUTPUT_NAME ${CMAKE_PROJECT_NAME} )
-    add_custom_command( TARGET main POST_BUILD
+    add_custom_command( TARGET main PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_SOURCE_DIR}/assets
-        $<CONFIG>/assets
+        $<TARGET_FILE_DIR:main>/assets
         )
 endif()
 
@@ -25,10 +25,11 @@ add_subdirectory( "lib" )
 add_subdirectory( "vendor" )
 
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten" )
-    target_link_options( main PRIVATE "--emrun -s DEMANGLE_SUPPORT=1 --preload-file ${CMAKE_SOURCE_DIR}/assets --bind" )
+    target_link_options( main PRIVATE "--emrun -s DEMANGLE_SUPPORT=1" )
+    target_link_options( main PRIVATE "-s USE_SDL=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS=[\"png\"]")
     target_link_options( main PRIVATE "-sASYNCIFY" )
-    target_link_options( main PRIVATE "-sWASM=1" )
-    target_link_options( main PRIVATE "-O3" )
+    target_link_options( main PRIVATE "-s WASM=1 -s ALLOW_MEMORY_GROWTH=1" )
+    set_target_properties(main PROPERTIES LINK_FLAGS "--preload-file assets --use-preload-plugins")
     set(CMAKE_EXECUTABLE_SUFFIX .html)
     set_target_properties( main PROPERTIES OUTPUT_NAME index )
 endif()
