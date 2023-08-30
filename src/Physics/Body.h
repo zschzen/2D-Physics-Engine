@@ -4,7 +4,6 @@
 #pragma once
 #include "Vec2.h"
 #include "Shape.h"
-#include "SDL_stdinc.h"
 
 struct Body {
     Body() = default;
@@ -42,8 +41,6 @@ struct Body {
     
 public:
     Shape* shape = nullptr;
-
-    Uint32 color = 0xFFFFFFFF;
 
 public:
     bool IsStatic() const;
