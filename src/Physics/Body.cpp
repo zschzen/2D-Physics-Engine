@@ -18,6 +18,7 @@ Body::Body(const Shape& shape, float x, float y, float mass)
 Body::~Body()
 {
     delete shape;
+    shape = nullptr;
 }
 
 bool Body::IsStatic() const
