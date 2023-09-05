@@ -11,25 +11,31 @@
 
 #include "./Graphics.h"
 #include "./Entity.h"
+#include "./QuadTree/QuadTree.h"
 
-class Application {
-    private:
-        bool running = false;
+class Application
+{
+private:
+	bool running = false;
 
-        std::vector<Entity*> entities = std::vector<Entity*>();
-        std::vector<Contact> contacts = std::vector<Contact>();
-        
-        bool Debug = false;
+	QuadTree::QuadTree<float, Entity> quadTree;
+	QuadTree::Rectangle<float> boundary;
+	QuadTree::Rectangle<float> queryRange{0, 0, 50, 50};
 
-    public:
-        Application() = default;
-        ~Application() = default;
-        bool IsRunning();
-        void Setup();
-        void Input();
-        void Update();
-        void Render();
-        void Destroy();
+	std::vector<std::shared_ptr<Entity>> entities = std::vector<std::shared_ptr<Entity>>();
+	std::vector<Contact> contacts = std::vector<Contact>();
+
+	bool Debug = false;
+
+public:
+	Application() = default;
+	~Application() = default;
+	bool IsRunning();
+	void Setup();
+	void Input();
+	void Update();
+	void Render();
+	void Destroy();
 };
 
 #endif
