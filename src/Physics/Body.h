@@ -2,8 +2,12 @@
 #define BODY_H
 
 #pragma once
+
 #include "Vec2.h"
 #include "Shape.h"
+
+// Forward declaration
+struct SDL_Texture;
 
 struct Body {
     Body() = default;
@@ -38,6 +42,9 @@ struct Body {
     
     // Friction
     float friction = 1.0f;
+	
+	// Gravity scale
+	float gravityScale = 1.0f;
     
 public:
     Shape* shape = nullptr;
@@ -54,10 +61,16 @@ public:
     void IntegrateAngular(float deltaTime);
 
     void Update(float deltaTime);
+	
+public:
+	void SetTexture(const char* fileName);
 
 private:
     void ClearForces();
     void ClearTorque();
+	
+public:
+	SDL_Texture* texture = nullptr;
 };
 
 #endif

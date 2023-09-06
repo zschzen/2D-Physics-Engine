@@ -3,6 +3,10 @@
 #include <cmath>
 #include <limits>
 
+#include <SDL_image.h>
+
+#include "../Graphics.h"
+
 Body::Body(const Shape& shape, float x, float y, float mass)
 {
     this->shape = shape.Clone();
@@ -114,3 +118,16 @@ void Body::ClearTorque()
 {
     netTorque = 0.0f;
 }
+
+void Body::SetTexture(const char* fileName)
+{
+	SDL_Surface* surface = IMG_Load(fileName);
+	if (!surface) {
+		printf("Failed to load texture: %s\n", fileName);
+		return;
+	}
+
+	texture = SDL_CreateTextureFromSurface(Graphics::renderer, surface);
+	SDL_FreeSurface(surface);
+}
+
