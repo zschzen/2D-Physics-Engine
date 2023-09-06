@@ -13,6 +13,11 @@ float CircleShape::GetMomentOfInertia() const
     return 0.5f * (radius * radius);
 }
 
+void CircleShape::UpdateVertices(float angle, const Vec2& position)
+{
+	// Do nothing
+}
+
 // --------------------
 // PolygonShape
 // --------------------

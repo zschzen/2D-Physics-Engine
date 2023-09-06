@@ -102,11 +102,7 @@ void Body::Update(float dt)
     IntegrateLinear(dt);
     IntegrateAngular(dt);
 
-    const bool isPolygon = shape->GetType() == ShapeType::POLYGON || shape->GetType() == ShapeType::BOX;
-    if (!isPolygon) return;
-
-    PolygonShape* polygonShape = dynamic_cast<PolygonShape*>(shape);
-    polygonShape->UpdateVertices(rotation, position);
+    shape->UpdateVertices(rotation, position);
 }
 
 void Body::ClearForces()
