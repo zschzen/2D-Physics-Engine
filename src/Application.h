@@ -10,14 +10,13 @@
 
 
 #include "./Graphics.h"
-#include "./Entity.h"
+#include "./Physics/World.h"
 
 class Application {
     private:
         bool running = false;
-
-        std::vector<Entity*> entities = std::vector<Entity*>();
-        std::vector<Contact> contacts = std::vector<Contact>();
+		
+		World* world = nullptr;
         
         bool Debug = false;
 

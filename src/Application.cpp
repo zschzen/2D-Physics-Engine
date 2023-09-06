@@ -1,8 +1,6 @@
 #include "Application.h"
 
-#include "./Physics/CollisionDetection.h"
 #include "./Physics/Constants.h"
-#include "./Physics/Force.h"
 
 
 bool Application::IsRunning() {
@@ -15,21 +13,23 @@ bool Application::IsRunning() {
 void Application::Setup() {
     running = Graphics::OpenWindow();
 
+	world = new World(-9.8f);
+	
     // Create walls and floor
-    Entity* floor = new Entity(BoxShape(Graphics::Width() - 50, 50), Graphics::Width() / 2, Graphics::Height() - 50, 0.0f);
-    Entity* leftWall = new Entity(BoxShape(50, Graphics::Height() - 100), 50, Graphics::Height() / 2.0 - 25, 0.0f);
-    Entity* rightWall = new Entity(BoxShape(50, Graphics::Height() - 100), Graphics::Width() - 50, Graphics::Height() / 2.0 - 25, 0.0f);
+	Body* floor = new Body(BoxShape(Graphics::Width() - 50, 50), Graphics::Width() / 2, Graphics::Height() - 50, 0.0f);
+	Body* leftWall = new Body(BoxShape(50, Graphics::Height() - 100), 50, Graphics::Height() / 2.0 - 25, 0.0f);
+	Body* rightWall = new Body(BoxShape(50, Graphics::Height() - 100), Graphics::Width() - 50, Graphics::Height() / 2.0 - 25, 0.0f);
     
-    floor->body->restitution = 0.2f;
+    floor->restitution = 0.2f;
     floor->SetTexture("./assets/metal.png");
-    leftWall->body->restitution = 0.2f;
+    leftWall->restitution = 0.2f;
     leftWall->SetTexture("./assets/metal.png");
-    rightWall->body->restitution = 0.2f;
+    rightWall->restitution = 0.2f;
     rightWall->SetTexture("./assets/metal.png");
-    
-    entities.push_back(floor);
-    entities.push_back(leftWall);
-    entities.push_back(rightWall);
+	
+	world->AddBody(floor);
+	world->AddBody(leftWall);
+	world->AddBody(rightWall);
     
     // TODO: Create a polygon generator function
     // Pentagram vertices local coordinates
@@ -49,10 +49,10 @@ void Application::Setup() {
     };
 
     // Create obstacles
-    Entity* centerObstacle = new Entity(BoxShape(100, 100), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
+	Body* centerObstacle = new Body(PolygonShape(pentVertices), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
     centerObstacle->SetTexture("./assets/metal.png");
-    centerObstacle->body->restitution = 0.1f;
-    entities.push_back(centerObstacle);
+    centerObstacle->restitution = 0.1f;
+    world->AddBody(centerObstacle);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -72,20 +72,22 @@ void Application::Input() {
             case SDL_MOUSEBUTTONDOWN:
                 int x, y;
                 SDL_GetMouseState(&x, &y);
-                Entity* newEntity;
-                
-                // left button
-                if (event.button.button == SDL_BUTTON_LEFT) {
-                    newEntity = new Entity(CircleShape(25), x, y, 1.0f);
-                    newEntity->SetTexture("./assets/basketball.png");
-                } else if (event.button.button == SDL_BUTTON_RIGHT) {
-                    newEntity = new Entity(BoxShape(50, 50), x, y, 1.0f);
-                    newEntity->SetTexture("./assets/crate.png");
-                } else {
-                    break;
-                }
-                entities.push_back(newEntity);
-                break;
+                Body* newBody;
+
+		        if (event.button.button == SDL_BUTTON_LEFT) {
+			        newBody = new Body(CircleShape(25), x, y, 5.0f);
+					newBody->SetTexture("./assets/basketball.png");
+		        }
+				else if (event.button.button == SDL_BUTTON_RIGHT) {
+			        newBody = new Body(BoxShape(50, 50), x, y, 5.0f);
+					newBody->SetTexture("./assets/crate.png");
+		        }
+				else return;
+				
+				world->AddBody(newBody);
+				break;
+			default:
+				break;
         }
     }
 }
@@ -106,47 +108,8 @@ void Application::Update() {
     // Set the time of the current frame to be used in the next one
     timePreviousFrame = SDL_GetTicks();
 
-    // Clear contacts
-    if (Debug) contacts.clear();
-
-    // Add forces to the bodies
-    for (auto& entity: entities) {
-        // drag force
-        if (!entity || entity->body->IsStatic()) continue;
-        Vec2 weight = Vec2(0, GRAVITY * entity->body->mass * PIXELS_PER_METER);
-        entity->body->AddForce(weight);
-    }
-
-    // Integrate the acceleration and velocity to estimate the new position
-    for (auto& entity: entities) {
-        entity->body->Update(deltaTime);
-    }
-    
-    // Reset collision flags
-    for (auto& entity: entities) {
-        entity->body->isColliding = false;
-    }
-    
-    // Check collisions
-    for (int i = 0; i <= entities.size() - 1; ++i) {
-        for (int j = i + 1; j < entities.size(); ++j) {
-            Body *bodyA = entities[i]->body;
-            Body *bodyB = entities[j]->body;
-            
-            Contact contact;
-            if (!CollisionDetection::IsColliding(bodyA, bodyB, contact)) continue;
-
-            // Resolve collision
-            contact.ResolveCollision();
-
-            if (Debug) contacts.push_back(contact);
-
-            bodyA->isColliding = true;
-            bodyB->isColliding = true;
-        }
-    }
-    
-    entities[3]->body->rotation += 0.25f * deltaTime;
+	// Update the world
+    world->Update(deltaTime);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -155,18 +118,38 @@ void Application::Update() {
 void Application::Render() {
     Graphics::ClearScreen(0xFF0F0721);
 
-    for (const auto& entity : entities) {
-        entity->Draw(Debug);
-    }
+    const std::vector<Body*> bodies = world->GetBodies();
+	for (const auto& body: bodies) {
+		Uint32 color = body->isColliding ? 0xFF0000FF : 0xFFFFFFFF;
 
-    if (Debug) {
-        for (const auto &contact: contacts) {
-            Graphics::DrawFillCircle(contact.start.x, contact.start.y, 3, 0xFFFF00FF);
-            Graphics::DrawFillCircle(contact.end.x, contact.end.y, 3, 0xFFFFFFFF);
-            Graphics::DrawLine(contact.start.x, contact.start.y, contact.start.x + contact.normal.x * 15,
-                               contact.start.y + contact.normal.y * 15, 0xFFFF00FF);
-        }
-    }
+		switch (body->shape->GetType()) {
+			case ShapeType::CIRCLE: {
+				CircleShape *circle = dynamic_cast<CircleShape *>(body->shape);
+				if (Debug || !body->texture)
+					Graphics::DrawCircle(body->position.x, body->position.y, circle->radius, body->rotation, color);
+				else
+					Graphics::DrawTexture(body->position.x, body->position.y, circle->radius * 2, circle->radius * 2,
+					                      body->rotation, body->texture);
+				break;
+			}
+			case ShapeType::BOX: {
+				BoxShape *box = dynamic_cast<BoxShape *>(body->shape);
+				if (Debug || !body->texture)
+					Graphics::DrawPolygon(body->position.x, body->position.y, box->worldVertices, color);
+				else
+					Graphics::DrawTexture(body->position.x, body->position.y, box->width, box->height, body->rotation,
+					                      body->texture);
+				break;
+			}
+			case ShapeType::POLYGON: {
+				PolygonShape *polygon = dynamic_cast<PolygonShape *>(body->shape);
+				Graphics::DrawPolygon(body->position.x, body->position.y, polygon->worldVertices, color);
+				break;
+			}
+			default:
+				break;
+		}
+	}
     
     Graphics::RenderFrame();
 }
@@ -175,9 +158,6 @@ void Application::Render() {
 // Destroy function to delete objects and close the window
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Destroy() {
-    for (auto& entity: entities) {
-        delete entity;
-    }
-
+	delete world;
     Graphics::CloseWindow();
 }
