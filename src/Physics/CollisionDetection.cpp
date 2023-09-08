@@ -1,5 +1,7 @@
 #include "CollisionDetection.h"
 
+#include <limits>
+
 #include "Body.h"
 #include "Contact.h"
 

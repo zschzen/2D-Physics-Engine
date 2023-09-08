@@ -3,6 +3,8 @@
 #include "Constants.h"
 #include "CollisionDetection.h"
 
+#include <algorithm>
+
 World::World(float gravity) : G(-gravity)
 {
 }
