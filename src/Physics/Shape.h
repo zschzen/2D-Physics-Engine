@@ -4,7 +4,7 @@
 #pragma once
 
 #include <vector>
-#include "Vec2.h"
+#include "Math/Vec2.h"
 
 enum class ShapeType {
     CIRCLE,

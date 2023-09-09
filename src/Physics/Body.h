@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "Vec2.h"
+#include "Math/Vec2.h"
 #include "Shape.h"
 
 // Forward declaration
