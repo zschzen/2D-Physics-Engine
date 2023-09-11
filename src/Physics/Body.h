@@ -61,6 +61,9 @@ public:
     void IntegrateAngular(float deltaTime);
 
     void Update(float deltaTime);
+
+    Vec2 GetLocalPoint(const Vec2 &vec2) const;
+    Vec2 GetWorldPoint(const Vec2 &vec2) const;
 	
 public:
 	void SetTexture(const char* fileName);

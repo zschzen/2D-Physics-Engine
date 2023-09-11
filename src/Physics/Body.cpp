@@ -127,3 +127,19 @@ void Body::SetTexture(const char* fileName)
 	SDL_FreeSurface(surface);
 }
 
+Vec2 Body::GetLocalPoint(const Vec2 &vec2) const
+{
+    // inverse translation
+    float transformedX = vec2.x - position.x;
+    float transformedY = vec2.y - position.y;
+    // inverse rotation matrix
+    float rotatedX = transformedX * std::cos(-rotation) - transformedY * std::sin(-rotation);
+    float rotatedY = transformedX * std::cos(-rotation) + transformedY * std::sin(-rotation);
+    return {rotatedX, rotatedY};
+}
+
+Vec2 Body::GetWorldPoint(const Vec2 &vec2) const
+{
+    Vec2 rotated = vec2.Rotate(rotation);
+    return rotated + position;
+}
