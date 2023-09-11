@@ -15,44 +15,15 @@ void Application::Setup() {
 
 	world = new World(-9.8f);
 	
-    // Create walls and floor
-	Body* floor = new Body(BoxShape(Graphics::Width() - 50, 50), Graphics::Width() / 2, Graphics::Height() - 50, 0.0f);
-	Body* leftWall = new Body(BoxShape(50, Graphics::Height() - 100), 50, Graphics::Height() / 2.0 - 25, 0.0f);
-	Body* rightWall = new Body(BoxShape(50, Graphics::Height() - 100), Graphics::Width() - 50, Graphics::Height() / 2.0 - 25, 0.0f);
+    // Add two bodies
+    Body* bodyA = new Body(CircleShape(30.0f), Graphics::Width() / 2.0f, Graphics::Height() / 2.0f, 0.0f);
+    Body* bodyB = new Body(CircleShape(20.0f), bodyA->position.x - 100.0f, bodyA->position.y, 1.0f);
+    world->AddBody(bodyA);
+    world->AddBody(bodyB);
     
-    floor->restitution = 0.2f;
-    floor->SetTexture("./assets/metal.png");
-    leftWall->restitution = 0.2f;
-    leftWall->SetTexture("./assets/metal.png");
-    rightWall->restitution = 0.2f;
-    rightWall->SetTexture("./assets/metal.png");
-	
-	world->AddBody(floor);
-	world->AddBody(leftWall);
-	world->AddBody(rightWall);
-    
-    // TODO: Create a polygon generator function
-    // Pentagram vertices local coordinates
-    std::vector<Vec2> pentVertices = {
-        Vec2(0, -100),
-        Vec2(95, -31),
-        Vec2(59, 81),
-        Vec2(-59, 81),
-        Vec2(-95, -31)
-    };
-    
-    // centered right triangle vertices local coordinates
-    std::vector<Vec2> rightTriangleVertices = {
-        Vec2(0, -50),
-        Vec2(50, 50),
-        Vec2(-50, 50)
-    };
-
-    // Create obstacles
-	Body* centerObstacle = new Body(PolygonShape(pentVertices), Graphics::Width() / 2, Graphics::Height() / 2, 0.0f);
-    centerObstacle->SetTexture("./assets/metal.png");
-    centerObstacle->restitution = 0.1f;
-    world->AddBody(centerObstacle);
+    // Add a joint constraint between the two bodies
+    JointConstraint* joint = new JointConstraint(bodyA, bodyB, bodyA->position);
+    world->AddConstraint(joint);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -69,25 +40,7 @@ void Application::Input() {
                 if (event.key.keysym.sym == SDLK_ESCAPE)
                     running = false;
                 break;
-            case SDL_MOUSEBUTTONDOWN:
-                int x, y;
-                SDL_GetMouseState(&x, &y);
-                Body* newBody;
-
-		        if (event.button.button == SDL_BUTTON_LEFT) {
-			        newBody = new Body(CircleShape(25), x, y, 5.0f);
-					newBody->SetTexture("./assets/basketball.png");
-		        }
-				else if (event.button.button == SDL_BUTTON_RIGHT) {
-			        newBody = new Body(BoxShape(50, 50), x, y, 5.0f);
-					newBody->SetTexture("./assets/crate.png");
-		        }
-				else return;
-				
-				world->AddBody(newBody);
-				break;
-			default:
-				break;
+			default: break;
         }
     }
 }
