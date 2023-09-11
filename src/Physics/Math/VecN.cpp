@@ -45,6 +45,7 @@ VecN &VecN::operator=(const VecN &v) {
     if (this == &v) return *this;
 
     delete[] data;
+    data = new float[v.N];
     this->N = v.N;
     for (int i = 0; i < N; i++) {
         data[i] = v.data[i];
