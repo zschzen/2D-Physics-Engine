@@ -15,7 +15,12 @@ World::~World()
 		delete body;
 		body = nullptr;
 	}
+    for (auto &constraint: constraints) {
+        delete constraint;
+        constraint = nullptr;
+    }
 	bodies.clear();
+    constraints.clear();
 	forces.clear();
 	torques.clear();
 }
@@ -31,6 +36,19 @@ void World::RemoveBody(Body *body)
 	if (it != bodies.end()) {
 		bodies.erase(it);
 	}
+}
+
+void World::AddConstraint(Constraint *constraint)
+{
+    constraints.push_back(constraint);
+}
+
+void World::RemoveConstraint(Constraint *constraint)
+{
+    auto it = std::find(constraints.begin(), constraints.end(), constraint);
+    if (it != constraints.end()) {
+        constraints.erase(it);
+    }
 }
 
 void World::AddForce(const Vec2 &force)
