@@ -62,26 +62,15 @@ void Body::ApplyImpulse(const Vec2 &j, const Vec2 &contactVector)
     angularVelocity += inverseI * contactVector.Cross(j);
 }
 
-void Body::IntegrateLinear(float deltaTime)
+void Body::IntegrateForces(const float deltaTime)
 {
-    if (IsStatic()) return;    
-
-    // Fr = m * a
+    if (IsStatic()) return;
+    
+    // Find linear acceleration based on net force (Fr = m * a)
     acceleration = netForce * inverseMass;
 
     // Integrate the acceleration to find the velocity
     velocity += acceleration * deltaTime;
-
-    // Integrate the velocity to find the position
-    position += velocity * deltaTime;
-
-    // Clear the net force
-    ClearForces();
-}
-
-void Body::IntegrateAngular(float deltaTime)
-{
-    if (IsStatic()) return;
 
     // Find angular acceleration based on torque
     // Fr = I * a
@@ -90,18 +79,26 @@ void Body::IntegrateAngular(float deltaTime)
     // Integrate the acceleration to find the velocity
     angularVelocity += angularAcceleration * deltaTime;
 
-    // Integrate the velocity to find the rotation angle
-    rotation += angularVelocity * deltaTime;
-
-    // Clear the net force
+    // Clear the net force and torque
+    ClearForces();
     ClearTorque();
 }
 
-void Body::Update(float dt)
+/*
+ * Integrate the velocity to find the position
+ * Called after Constraint::Solve()
+ */
+void Body::IntegrateVelocities(const float deltaTime)
 {
-    IntegrateLinear(dt);
-    IntegrateAngular(dt);
+    if (IsStatic()) return;
 
+    // Integrate the velocity to find the position
+    position += velocity * deltaTime;
+
+    // Integrate the velocity to find the rotation angle
+    rotation += angularVelocity * deltaTime;
+    
+    // Update the vertices of the shape
     shape->UpdateVertices(rotation, position);
 }
 

@@ -57,10 +57,8 @@ public:
     void ApplyImpulse(const Vec2& j);
     void ApplyImpulse(const Vec2& j, const Vec2& contactVector);
     
-    void IntegrateLinear(float deltaTime);
-    void IntegrateAngular(float deltaTime);
-
-    void Update(float deltaTime);
+    void IntegrateForces(const float deltaTime);
+    void IntegrateVelocities(const float deltaTime);
 
     Vec2 GetLocalPoint(const Vec2 &vec2) const;
     Vec2 GetWorldPoint(const Vec2 &vec2) const;
