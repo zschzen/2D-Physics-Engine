@@ -34,6 +34,9 @@ public:
     JointConstraint(Body* a, Body* b, const Vec2& anchor);
     
     void Solve() override;
+    
+protected:
+    VecN SolveGaussSeidel(const MatMN& A, const VecN& b, int iterations = 10) const;
 };
 
 class PenetrationConstraint : public Constraint
