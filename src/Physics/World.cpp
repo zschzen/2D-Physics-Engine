@@ -105,19 +105,21 @@ void World::Update(float deltaTime)
 
 void World::CheckCollisions()
 {
-	for (int i = 0; i <= bodies.size() - 1; ++i) {
-		for (int j = i + 1; j < bodies.size(); ++j) {
-			Body *bodyA = bodies[i];
-			Body *bodyB = bodies[j];
+    // Check all the bodies with all other bodies detecting collisions
+    for (int i = 0; i <= bodies.size() - 1; i++)
+    {
+        for (int j = i + 1; j < bodies.size(); j++)
+        {
+            Body* a = bodies[i];
+            Body* b = bodies[j];
+            a->isColliding = false;
+            b->isColliding = false;
 
-			Contact contact;
-			if (!CollisionDetection::IsColliding(bodyA, bodyB, contact)) continue;
-			
-			// Resolve collision
-			contact.ResolveCollision();
+            Contact contact;
+            if (!CollisionDetection::IsColliding(a, b, contact)) continue;
 
-			bodyA->isColliding = true;
-			bodyB->isColliding = true;
-		}
-	}
+            // Resolve the collision
+            contact.ResolveCollision();
+        }
+    }
 }
