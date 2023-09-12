@@ -57,6 +57,29 @@ void World::AddTorque(float torque)
 
 void World::Update(float deltaTime)
 {
+    // Integrate all the forces
+    for (auto& body: bodies) {
+        body->IntegrateForces(deltaTime);
+    }
+
+    // Solve all constraints
+    for (auto& constraint: constraints) {
+        constraint->PreSolve(deltaTime);
+    }
+    for (int i = 0; i < 5; i++) {
+        for (auto& constraint: constraints) {
+            constraint->Solve();
+        }
+    }
+    for (auto& constraint: constraints) {
+        constraint->PostSolve();
+    }
+
+    // Integrate all the velocities
+    for (auto& body: bodies) {
+        body->IntegrateVelocities(deltaTime);
+    }
+    
 	for (auto &body: bodies) {
 		if (body->IsStatic()) continue;
 
@@ -76,30 +99,6 @@ void World::Update(float deltaTime)
 			body->AddTorque(torque);
 		}
 	}
-    
-    // Integrate all forces
-    for (auto &body: bodies) {
-        body->IntegrateForces(deltaTime);
-    }
-    
-    // Solve all constraints
-    for (auto &constraint: constraints) {
-        constraint->PreSolve();
-    }
-    // Apply impulses to bodies to resolve/fix collisions
-    for (int i = 0; i < 5; ++i) {
-        for (auto &constraint: constraints) {
-            constraint->Solve();
-        }
-    }
-    for (auto &constraint: constraints) {
-        constraint->PostSolve();
-    }
-    
-    // Integrate all velocities
-    for (auto &body: bodies) {
-        body->IntegrateVelocities(deltaTime);
-    }
 
 	// Check collisions
 	CheckCollisions();
