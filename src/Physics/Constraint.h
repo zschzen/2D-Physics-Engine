@@ -21,19 +21,24 @@ public:
     MatMN GetInvMassMatrix() const;
     VecN GetVelocities() const;
     
+    virtual void PreSolve() {}
     virtual void Solve() {}
+    virtual void PostSolve() {}
 };
 
 class JointConstraint : public Constraint
 {
 private:
     MatMN jacobian{};
+    VecN cachedLambda{1};
     
 public:
     JointConstraint();
     JointConstraint(Body* a, Body* b, const Vec2& anchor);
     
+    void PreSolve() override;
     void Solve() override;
+    void PostSolve() override;
 };
 
 class PenetrationConstraint : public Constraint

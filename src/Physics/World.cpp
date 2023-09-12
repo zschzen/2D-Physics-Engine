@@ -13,16 +13,10 @@ World::~World()
 {
 	for (auto &body: bodies) {
 		delete body;
-		body = nullptr;
 	}
     for (auto &constraint: constraints) {
         delete constraint;
-        constraint = nullptr;
     }
-	bodies.clear();
-    constraints.clear();
-	forces.clear();
-	torques.clear();
 }
 
 void World::AddBody(Body *body)
@@ -89,9 +83,17 @@ void World::Update(float deltaTime)
     }
     
     // Solve all constraints
-    // Apply impulses to bodies to resolve/fix collisions
     for (auto &constraint: constraints) {
-        constraint->Solve();
+        constraint->PreSolve();
+    }
+    // Apply impulses to bodies to resolve/fix collisions
+    for (int i = 0; i < 5; ++i) {
+        for (auto &constraint: constraints) {
+            constraint->Solve();
+        }
+    }
+    for (auto &constraint: constraints) {
+        constraint->PostSolve();
     }
     
     // Integrate all velocities
