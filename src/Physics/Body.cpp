@@ -17,6 +17,8 @@ Body::Body(const Shape& shape, float x, float y, float mass)
     
     this->I = shape.GetMomentOfInertia() * mass;
     this->inverseI = (I != 0.0f) ? 1.0f / I : 0.0f;
+
+    this->shape->UpdateVertices(rotation, position);
 }
 
 Body::~Body()
