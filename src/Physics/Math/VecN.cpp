@@ -85,9 +85,9 @@ VecN &VecN::operator-=(const VecN &v) {
 }
 
 VecN VecN::operator*=(const float n) const {
-    VecN result;
+    VecN result = *this;
     for (int i = 0; i < N; i++) {
-        result.data[i] = data[i] * n;
+        result.data[i] *= n;
     }
     return result;
 }
