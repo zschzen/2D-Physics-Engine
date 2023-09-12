@@ -21,7 +21,7 @@ public:
     MatMN GetInvMassMatrix() const;
     VecN GetVelocities() const;
     
-    virtual void PreSolve() {}
+    virtual void PreSolve(float deltaTime) {}
     virtual void Solve() {}
     virtual void PostSolve() {}
 };
@@ -29,14 +29,15 @@ public:
 class JointConstraint : public Constraint
 {
 private:
-    MatMN jacobian{};
+    MatMN jacobian{1, 6};
     VecN cachedLambda{1};
+    float bias = 0.0f;
     
 public:
     JointConstraint();
     JointConstraint(Body* a, Body* b, const Vec2& anchor);
     
-    void PreSolve() override;
+    void PreSolve(float deltaTime) override;
     void Solve() override;
     void PostSolve() override;
 };
