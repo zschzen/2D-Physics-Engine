@@ -18,7 +18,7 @@ class Application {
 		
 		World* world = nullptr;
         
-        bool Debug = false;
+        bool Debug = true;
 
     public:
         Application() = default;
