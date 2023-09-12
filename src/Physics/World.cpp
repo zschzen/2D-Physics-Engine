@@ -56,7 +56,27 @@ void World::AddTorque(float torque)
 }
 
 void World::Update(float deltaTime)
-{
+{    
+	for (auto &body: bodies) {
+		if (body->IsStatic()) continue;
+
+        // Reset collision flag
+        body->isColliding = false;
+        
+		// Apply gravity
+		body->AddForce(Vec2(0, body->gravityScale * (G * body->mass * PIXELS_PER_METER)));
+
+		// Apply forces
+		for (Vec2 &force: forces) {
+			body->AddForce(force);
+		}
+
+		// Apply torques
+		for (float &torque: torques) {
+			body->AddTorque(torque);
+		}
+	}
+
     // Integrate all the forces
     for (auto& body: bodies) {
         body->IntegrateForces(deltaTime);
@@ -79,26 +99,6 @@ void World::Update(float deltaTime)
     for (auto& body: bodies) {
         body->IntegrateVelocities(deltaTime);
     }
-    
-	for (auto &body: bodies) {
-		if (body->IsStatic()) continue;
-
-        // Reset collision flag
-        body->isColliding = false;
-        
-		// Apply gravity
-		body->AddForce(Vec2(0, body->gravityScale * (G * body->mass * PIXELS_PER_METER)));
-
-		// Apply forces
-		for (Vec2 &force: forces) {
-			body->AddForce(force);
-		}
-
-		// Apply torques
-		for (float &torque: torques) {
-			body->AddTorque(torque);
-		}
-	}
 
 	// Check collisions
 	CheckCollisions();
