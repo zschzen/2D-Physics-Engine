@@ -47,14 +47,21 @@ void Body::AddTorque(float torque)
 // Impulse J is the change in momentum: J = ΔP = m * Δv
 // The change in velocity is Δv = J / m
 ////////////////////////////////////////////////////////
-void Body::ApplyImpulse(const Vec2 &j)
+void Body::ApplyImpulseLinear(const Vec2 &j)
 {
     if (IsStatic()) return;
 
     velocity += j * inverseMass;
 }
 
-void Body::ApplyImpulse(const Vec2 &j, const Vec2 &contactVector)
+void Body::ApplyImpulseAngular(const float j)
+{
+    if (IsStatic()) return;
+
+    angularVelocity += j * inverseI;
+}
+
+void Body::ApplyImpulseAtPoint(const Vec2 &j, const Vec2 &contactVector)
 {
     if (IsStatic()) return;
 
@@ -86,7 +93,7 @@ void Body::IntegrateForces(const float deltaTime)
 
 /*
  * Integrate the velocity to find the position
- * Called after Constraint::Solve()
+ * Called before Constraint::Solve()
  */
 void Body::IntegrateVelocities(const float deltaTime)
 {
@@ -124,14 +131,14 @@ void Body::SetTexture(const char* fileName)
 	SDL_FreeSurface(surface);
 }
 
-Vec2 Body::GetLocalPoint(const Vec2 &vec2) const
+Vec2 Body::GetLocalPoint(const Vec2 &point) const
 {
     // inverse translation
-    float transformedX = vec2.x - position.x;
-    float transformedY = vec2.y - position.y;
+    float transformedX = point.x - position.x;
+    float transformedY = point.y - position.y;
     // inverse rotation matrix
     float rotatedX = transformedX * std::cos(-rotation) - transformedY * std::sin(-rotation);
-    float rotatedY = transformedX * std::cos(-rotation) + transformedY * std::sin(-rotation);
+    float rotatedY = transformedY * std::cos(-rotation) + transformedX * std::sin(-rotation);
     return {rotatedX, rotatedY};
 }
 

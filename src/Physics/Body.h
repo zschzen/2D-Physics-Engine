@@ -54,13 +54,14 @@ public:
 
     void AddForce(const Vec2& force);
     void AddTorque(float torque);
-    void ApplyImpulse(const Vec2& j);
-    void ApplyImpulse(const Vec2& j, const Vec2& contactVector);
+    void ApplyImpulseLinear(const Vec2& j);
+    void ApplyImpulseAngular(const float j);
+    void ApplyImpulseAtPoint(const Vec2& j, const Vec2& contactVector);
     
     void IntegrateForces(const float deltaTime);
     void IntegrateVelocities(const float deltaTime);
 
-    Vec2 GetLocalPoint(const Vec2 &vec2) const;
+    Vec2 GetLocalPoint(const Vec2 &point) const;
     Vec2 GetWorldPoint(const Vec2 &vec2) const;
 	
 public:
