@@ -34,9 +34,6 @@ struct Body {
     Vec2 netForce{};
     float netTorque{};
 
-    // Collision data
-    bool isColliding{};
-
     // Restitution ([e]lasticity)
     float restitution = 1.0f;
     
