@@ -110,11 +110,9 @@ VecN VecN::operator+(const VecN &v) const {
 }
 
 VecN VecN::operator-(const VecN &v) const {
-    VecN result;
-    if (N != v.N) return result;
-    for (int i = 0; i < N; i++) {
-        result.data[i] = data[i] - v.data[i];
-    }
+    VecN result = *this;
+    for (int i = 0; i < N; i++)
+        result.data[i] -= v.data[i];
     return result;
 }
 
