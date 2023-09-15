@@ -56,23 +56,23 @@ void World::AddTorque(float torque)
 }
 
 void World::Update(float deltaTime)
-{    
-	for (auto &body: bodies) {
+{
+    // Vector of penetration constraints
+    std::vector<PenetrationConstraint> penetrations{};
+    
+	for (auto& body: bodies) {
 		if (body->IsStatic()) continue;
-
-        // Reset collision flag
-        body->isColliding = false;
         
 		// Apply gravity
 		body->AddForce(Vec2(0, body->gravityScale * (G * body->mass * PIXELS_PER_METER)));
 
 		// Apply forces
-		for (Vec2 &force: forces) {
+		for (Vec2& force: forces) {
 			body->AddForce(force);
 		}
 
 		// Apply torques
-		for (float &torque: torques) {
+		for (float& torque: torques) {
 			body->AddTorque(torque);
 		}
 	}
@@ -82,29 +82,36 @@ void World::Update(float deltaTime)
         body->IntegrateForces(deltaTime);
     }
 
+    // Check penetrations
+    CheckCollisions(penetrations);
+
     // Solve all constraints
     for (auto& constraint: constraints) {
         constraint->PreSolve(deltaTime);
     }
+    for (auto& pConstraint: penetrations) {
+        pConstraint.PreSolve(deltaTime);
+    }
     for (int i = 0; i < 5; i++) {
-        for (auto& constraint: constraints) {
+        for (auto& constraint: constraints)
             constraint->Solve();
-        }
+        for (auto& pConstraint: penetrations)
+            pConstraint.Solve();
     }
     for (auto& constraint: constraints) {
         constraint->PostSolve();
+    }
+    for (auto& pConstraint: penetrations) {
+        pConstraint.PostSolve();
     }
 
     // Integrate all the velocities
     for (auto& body: bodies) {
         body->IntegrateVelocities(deltaTime);
     }
-
-	// Check collisions
-	CheckCollisions();
 }
 
-void World::CheckCollisions()
+void World::CheckCollisions(std::vector<PenetrationConstraint> &OutPenetrations)
 {
     // Check all the bodies with all other bodies detecting collisions
     for (int i = 0; i <= bodies.size() - 1; i++)
@@ -113,14 +120,13 @@ void World::CheckCollisions()
         {
             Body* a = bodies[i];
             Body* b = bodies[j];
-            a->isColliding = false;
-            b->isColliding = false;
 
             Contact contact;
             if (!CollisionDetection::IsColliding(a, b, contact)) continue;
 
             // Resolve the collision
-            contact.ResolveCollision();
+            PenetrationConstraint penetration(contact.a, contact.b, contact.start, contact.end, contact.normal);
+            OutPenetrations.push_back(penetration);
         }
     }
 }

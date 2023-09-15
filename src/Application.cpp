@@ -15,22 +15,16 @@ void Application::Setup() {
 
 	world = new World(-9.8f);
 
-    // Add several bodies
-    constexpr int NUM_BODIES = 8;
-    for (int i = 0; i < NUM_BODIES; i++) {
-        float mass = (i == 0) ? 0.0f : 1.0f;
-        Body* body = new Body(BoxShape(30, 30), (Graphics::Width() / 2.0) - (i * 40), 100, mass);
-        body->SetTexture("./assets/crate.png");
-        world->AddBody(body);
-    }
-
-    // Add joints to connect them (distance constraints)
-    for (int i = 0; i < NUM_BODIES - 1; i++) {
-        Body* a = world->GetBodies()[i];
-        Body* b = world->GetBodies()[i + 1];
-        JointConstraint* joint = new JointConstraint(a, b, a->position);
-        world->AddConstraint(joint);
-    }
+    // Add a floor and walls to contain objects objects
+    Body* floor = new Body(BoxShape(Graphics::Width() - 50, 50), Graphics::Width() / 2.0, Graphics::Height() - 50, 0.0);
+    Body* leftWall = new Body(BoxShape(50, Graphics::Height() - 100), 50, Graphics::Height() / 2.0 - 25, 0.0);
+    Body* rightWall = new Body(BoxShape(50, Graphics::Height() - 100), Graphics::Width() - 50, Graphics::Height() / 2.0 - 25, 0.0);
+    floor->restitution = 0.7;
+    leftWall->restitution = 0.2;
+    rightWall->restitution = 0.2;
+    world->AddBody(floor);
+    world->AddBody(leftWall);
+    world->AddBody(rightWall);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -98,18 +92,17 @@ void Application::Update() {
 void Application::Render() {
     Graphics::ClearScreen(0xFF0F0721);
 
-    // Draw joint constraints
-    const std::vector<Constraint*> constraints = world->GetConstraints();
-    for (const auto& constraint: constraints) {
-            JointConstraint* joint = dynamic_cast<JointConstraint*>(constraint);
-            const Vec2 pa = joint->a->GetWorldPoint(joint->aPoint);
-            const Vec2 pb = joint->b->GetWorldPoint(joint->aPoint);
-            Graphics::DrawLine(pa.x, pa.y, pb.x, pb.y, 0xFF00FF00);
+    // Draw all joints anchor points
+    for (auto joint: world->GetConstraints()) {
+        if (Debug) {
+            const Vec2 anchorPoint = joint->a->GetWorldPoint(joint->aPoint);
+            Graphics::DrawFillCircle(anchorPoint.x, anchorPoint.y, 3, 0xFF0000FF);
+        }
     }
     
     const std::vector<Body*> bodies = world->GetBodies();
 	for (const auto& body: bodies) {
-		Uint32 color = body->isColliding ? 0xFF0000FF : 0xFFFFFFFF;
+		const Uint32 color = 0xFFFFFFFF;
 
 		switch (body->shape->GetType()) {
 			case ShapeType::CIRCLE: {

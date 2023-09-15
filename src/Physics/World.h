@@ -27,7 +27,7 @@ public:
 	
 	void Update(float deltaTime);
 	
-	void CheckCollisions();
+	void CheckCollisions(std::vector<PenetrationConstraint> &OutPenetrations);
 	
 private:
 	float G = 9.8f;
