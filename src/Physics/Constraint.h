@@ -45,8 +45,19 @@ public:
 class PenetrationConstraint : public Constraint
 {
 private:
-    MatMN jacobian{};
+    MatMN jacobian{2, 6};
+    VecN cachedLambda{jacobian.M};
+    float bias = 0.0f;
+    float friction = 0.0f;      // Friction coefficient
+    Vec2 normal{};              // Normal of the collision
 
+public:
+    PenetrationConstraint();
+    PenetrationConstraint(Body* a, Body* b, const Vec2& aCollisionPoint, const Vec2& bCollisionPoint, const Vec2& normal);
+
+    void PreSolve(float deltaTime) override;
+    void Solve() override;
+    void PostSolve() override;
 };
 
 #endif
