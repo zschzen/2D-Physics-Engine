@@ -21,9 +21,6 @@ struct Contact
 
     Vec2 normal{};
     float depth{};
-
-    void ResolvePenetration() const;
-    void ResolveCollision() const;
 };
 
 #endif
