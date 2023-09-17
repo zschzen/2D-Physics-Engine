@@ -92,7 +92,7 @@ void World::Update(float deltaTime)
     for (auto& pConstraint: penetrations) {
         pConstraint.PreSolve(deltaTime);
     }
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
         for (auto& constraint: constraints)
             constraint->Solve();
         for (auto& pConstraint: penetrations)
