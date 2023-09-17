@@ -115,18 +115,18 @@ void World::CheckCollisions(std::vector<PenetrationConstraint> &OutPenetrations)
 {
     // Check all the bodies with all other bodies detecting collisions
     for (int i = 0; i <= bodies.size() - 1; i++)
-    {
-        for (int j = i + 1; j < bodies.size(); j++)
-        {
-            Body* a = bodies[i];
-            Body* b = bodies[j];
+        for (int j = i + 1; j < bodies.size(); j++) {
+            Body *a = bodies[i];
+            Body *b = bodies[j];
 
-            Contact contact;
-            if (!CollisionDetection::IsColliding(a, b, contact)) continue;
+            std::vector<Contact> contacts{};
+            if (!CollisionDetection::IsColliding(a, b, contacts)) continue;
 
             // Resolve the collision
-            PenetrationConstraint penetration(contact.a, contact.b, contact.start, contact.end, contact.normal);
-            OutPenetrations.push_back(penetration);
+            for (auto &contact: contacts) {
+                PenetrationConstraint penetration(contact.a, contact.b, contact.start, contact.end, contact.normal);
+                OutPenetrations.push_back(penetration);
+            }
         }
-    }
+
 }
