@@ -50,10 +50,16 @@ struct PolygonShape : public Shape {
     Vec2 GetNormal(int index) const;
 
     // Get minimum sepration between polygons
-    float FindMinSeparation(const PolygonShape& other, Vec2& outAxis, Vec2& outPoint) const;
+    float FindMinSeparation(const PolygonShape& other, int &outIndexReferenceEdge, Vec2& outSupportPoint) const;
 
     // Function to rotate and translate the polygon vertices from "local space" to "world space."
     void UpdateVertices(float angle, const Vec2& position) override;
+
+    // Find the incident edge of the polygon based on the reference edge normal
+    int FindIncidentEdge(const Vec2 &normal) const;
+
+    // Clip the polygon against the edge
+    int ClipSegmentToLine(const std::vector<Vec2>& contactsIn, std::vector<Vec2>& contactsOut, const Vec2& c0, const Vec2& c1) const;
 };
 
 struct BoxShape : public PolygonShape {
