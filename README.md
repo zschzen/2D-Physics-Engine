@@ -1,4 +1,4 @@
-# 2d Physics Engine
+# 2D Physics Engine
 
 A study project that focuses on the development of a 2D physics engine using C++, SDL, and CMake. The engine was created during my time attending the [Pikuma] class, where we explored the world of physics simulations, utilizing rigid bodies and constraint-based solutions.
 
